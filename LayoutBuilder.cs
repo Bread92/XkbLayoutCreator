@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 class LayoutBuilder
 {
@@ -26,6 +27,26 @@ class LayoutBuilder
     {
         var index = Keys.FindIndex(x => x.KeyCode == keyCode);
 
+        if(!IsShift && !IsAlt)
+        {
+            Keys[index].Normal = value;
+        }
+        else if(IsShift && !IsAlt)
+        {
+            Keys[index].Shift = value;
+        }
+        else if(!IsShift && IsAlt)
+        {
+            Keys[index].Alt = value;
+        }
+        else if(IsShift && IsAlt)
+        {
+            Keys[index].ShiftAlt = value;
+        }
+    }
+
+    public void SetKeyByIndex(int index, string value)
+    {
         if(!IsShift && !IsAlt)
         {
             Keys[index].Normal = value;
@@ -71,8 +92,13 @@ class LayoutBuilder
         while(sr.Peek() != -1)
         {
             string[] values = sr.ReadLine()!.Split(' ');
+            foreach(var value in values)
+            {
+                Console.Write(value + " ");
+            }
 
             Keys.Add(new Key((KeyCode) keyCode, values));
+            Console.WriteLine(Keys[Keys.Count - 1].Normal);
             keyCode++;
         }
 

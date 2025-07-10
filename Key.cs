@@ -10,11 +10,6 @@ class Key
     {
         KeyCode = keyCode;
 
-        // if(values.Length < 1 || values.Length > 4)
-        // {
-        //     throw new FormatException("Wrong format!");
-        // }
-
         if(values.Length == 1)
         {
             Normal   = values[0];
@@ -36,7 +31,7 @@ class Key
             Alt      = values[2];
             ShiftAlt = "None";
         }
-        else if(values.Length == 3)
+        else if(values.Length == 4)
         {
             Normal   = values[0];
             Shift    = values[1];
@@ -47,7 +42,7 @@ class Key
 
     public override string ToString()
     {
-        return $"{KeyCode}: {Normal} {Shift} {Alt} {ShiftAlt}";
+        return $"{Normal} {Shift} {Alt} {ShiftAlt}";
     }
 }
 

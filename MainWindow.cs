@@ -17,6 +17,9 @@ namespace LayoutMaker
 {
     class MainWindow : Window
     {
+        private string preferredCharacter = string.Empty;
+        private string filePath = string.Empty;
+
         public List<Button> buttons = new List<Button>();
         public List<Button> Row1 = new List<Button>();
         public List<Button> Row2 = new List<Button>();
@@ -44,9 +47,11 @@ namespace LayoutMaker
             file.Submenu = filemenu;
 
             MenuItem save = new MenuItem("Save");
+            MenuItem saveAs = new MenuItem("Save As");
             MenuItem load = new MenuItem("Load");
             MenuItem exit = new MenuItem("Exit");
             save.Activated += SaveFile;
+            saveAs.Activated += SaveFileAs;
             load.Activated += LoadFile;
             exit.Activated += ExitMenu;
             filemenu.Append(save);
@@ -104,7 +109,7 @@ namespace LayoutMaker
 
             if (loadDialog.Run() == (int)ResponseType.Accept)
             {
-                string filePath = loadDialog.Filename;
+                filePath = loadDialog.Filename;
                 lb.LoadLayout(filePath);
                 Console.WriteLine($"Loaded file: {filePath}");
             }
@@ -115,6 +120,20 @@ namespace LayoutMaker
         }
 
         private void SaveFile(object sender, EventArgs a)
+        {
+            if(filePath == string.Empty)
+            {
+                SaveFileAs(sender, a);
+                return;
+            }
+
+            string fileText = CreateKlcFile();
+            System.IO.File.WriteAllText(filePath, fileText);
+            return;
+
+        }
+
+        private void SaveFileAs(object sender, EventArgs a)
         {
             FileChooserDialog saveDialog = new FileChooserDialog("Save file as...",
                     this,
@@ -156,12 +175,24 @@ namespace LayoutMaker
 
         private void Button_Clicked(object sender, EventArgs e)
         {
-            Button button = sender as Button;
+            Dialog inputDialog = new Dialog("Preferred Character", this, DialogFlags.Modal);
+            inputDialog.AddButton("Cancel", ResponseType.Cancel);
+            inputDialog.AddButton("OK", ResponseType.Accept);
 
-            if (button != null)
+            Entry entry = new Entry();
+            inputDialog.ContentArea.PackStart(entry, true, true, 0);
+            inputDialog.ShowAll();
+
+            if (inputDialog.Run() == (int)ResponseType.Accept)
             {
-                Console.WriteLine($"{button.Name} clicked!");
+                preferredCharacter = entry.Text;
+
+                var button = sender as Button;
+                lb.SetKeyByIndex(int.Parse(button.Name), preferredCharacter);
+                UpdateKeyLabels();
             }
+
+            inputDialog.Destroy();
         }
 
         private void UpdateKeyLabels()
@@ -201,8 +232,8 @@ namespace LayoutMaker
                 if (keyLabel != "None")
                 {
                     Button newButton = new Button(keyLabel);
-                    newButton.Name = ((KeyCode)keyIndex).ToString();
-                    newButton.Clicked += Button_Clicked;
+                    newButton.Name = keyIndex.ToString();
+                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
 
                     grid.Attach(newButton, col, 0, 1, 1);
                     Row1.Add(newButton);
@@ -217,8 +248,8 @@ namespace LayoutMaker
                 if (keyLabel != "None")
                 {
                     Button newButton = new Button(keyLabel);
-                    newButton.Name = ((KeyCode)keyIndex).ToString();
-                    newButton.Clicked += Button_Clicked;
+                    newButton.Name = keyIndex.ToString();
+                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
 
                     grid.Attach(newButton, col, 1, 1, 1);
                     Row2.Add(newButton);
@@ -226,6 +257,7 @@ namespace LayoutMaker
 
                 keyIndex++;
             }
+
             for (int col = 0; col < Row3Length; col++)
             {
                 keyLabel = GetKeyLabel(lb, keyIndex);
@@ -233,8 +265,8 @@ namespace LayoutMaker
                 if (keyLabel != "None")
                 {
                     Button newButton = new Button(keyLabel);
-                    newButton.Name = ((KeyCode)keyIndex).ToString();
-                    newButton.Clicked += Button_Clicked;
+                    newButton.Name = keyIndex.ToString();
+                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
 
                     grid.Attach(newButton, col, 2, 1, 1);
                     Row3.Add(newButton);
@@ -242,6 +274,7 @@ namespace LayoutMaker
 
                 keyIndex++;
             }
+
             for (int col = 0; col < Row4Length; col++)
             {
                 keyLabel = GetKeyLabel(lb, keyIndex);
@@ -249,8 +282,8 @@ namespace LayoutMaker
                 if (keyLabel != "None")
                 {
                     Button newButton = new Button(keyLabel);
-                    newButton.Name = ((KeyCode)keyIndex).ToString();
-                    newButton.Clicked += Button_Clicked;
+                    newButton.Name = keyIndex.ToString();
+                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
 
                     grid.Attach(newButton, col, 3, 1, 1);
                     Row4.Add(newButton);
@@ -258,6 +291,8 @@ namespace LayoutMaker
 
                 keyIndex++;
             }
+
+            keyIndex = 20;
         }
 
         private string GetKeyLabel(LayoutBuilder lb, int index)
@@ -290,24 +325,7 @@ namespace LayoutMaker
 
             foreach(var key in lb.Keys)
             {
-                if(key.Normal != "None")
-                {
-                    sb.Append($"{key.Normal} ");
-                }
-                if(key.Shift != "None")
-                {
-                    sb.Append($"{key.Shift} ");
-                }
-                if(key.Alt != "None")
-                {
-                    sb.Append($"{key.Alt} ");
-                }
-                if(key.ShiftAlt != "None")
-                {
-                    sb.Append($"{key.ShiftAlt} ");
-                }
-
-                sb.AppendLine();
+                sb.AppendLine(key.ToString());
             }
 
             return sb.ToString();
