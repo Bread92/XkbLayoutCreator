@@ -9,6 +9,7 @@
 */
 
 using System;
+using System.Text;
 using System.Collections.Generic;
 using Gtk;
 
@@ -90,14 +91,53 @@ namespace LayoutMaker
 
         private void LoadFile(object sender, EventArgs a)
         {
-            Console.WriteLine("Not implemented yet!");
-            return;
+            FileChooserDialog loadDialog = new FileChooserDialog("Select a file to load",
+                    this,
+                    FileChooserAction.Open,
+                    "Cancel", ResponseType.Cancel,
+                    "Open", ResponseType.Accept);
+
+            FileFilter filter = new FileFilter();
+            filter.Name = "KLC files";
+            filter.AddPattern("*.klc");
+            loadDialog.AddFilter(filter);
+
+            if (loadDialog.Run() == (int)ResponseType.Accept)
+            {
+                string filePath = loadDialog.Filename;
+                lb.LoadLayout(filePath);
+                Console.WriteLine($"Loaded file: {filePath}");
+            }
+
+            UpdateKeyLabels();
+
+            loadDialog.Destroy();
         }
 
         private void SaveFile(object sender, EventArgs a)
         {
-            Console.WriteLine("Not implemented yet!");
-            return;
+            FileChooserDialog saveDialog = new FileChooserDialog("Save file as...",
+                    this,
+                    FileChooserAction.Save,
+                    "Cancel", ResponseType.Cancel,
+                    "Save", ResponseType.Accept);
+
+            FileFilter filter = new FileFilter();
+            filter.Name = "KLC files";
+            filter.AddPattern("*.klc");
+            saveDialog.AddFilter(filter);
+
+            saveDialog.CurrentName="my_layout.klc";
+
+            if (saveDialog.Run() == (int)ResponseType.Accept)
+            {
+                string filePath = saveDialog.Filename;
+                string fileText = CreateKlcFile();
+                System.IO.File.WriteAllText(filePath, fileText);
+                Console.WriteLine($"Saved file: {filePath}");
+            }
+
+            saveDialog.Destroy();
         }
 
         void OnShiftToggled(object sender, EventArgs args)
@@ -243,5 +283,35 @@ namespace LayoutMaker
                 return string.Empty;
             }
         }
+
+        private string CreateKlcFile()
+        {
+            StringBuilder sb = new();
+
+            foreach(var key in lb.Keys)
+            {
+                if(key.Normal != "None")
+                {
+                    sb.Append($"{key.Normal} ");
+                }
+                if(key.Shift != "None")
+                {
+                    sb.Append($"{key.Shift} ");
+                }
+                if(key.Alt != "None")
+                {
+                    sb.Append($"{key.Alt} ");
+                }
+                if(key.ShiftAlt != "None")
+                {
+                    sb.Append($"{key.ShiftAlt} ");
+                }
+
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
     }
+
 }

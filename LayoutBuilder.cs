@@ -63,6 +63,7 @@ class LayoutBuilder
 
     public void LoadLayout(string filepath)
     {
+        Keys = new List<Key>();
         StreamReader sr = new(filepath);
 
         int keyCode = 0;
