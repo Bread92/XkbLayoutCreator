@@ -8,56 +8,14 @@ class LayoutBuilder
 
     public List<Key> Keys = new();
 
-    Dictionary<string, KeyCode> KeyMap = new Dictionary<string, KeyCode>
+    public LayoutBuilder()
     {
-        { "`", KeyCode.KeyBacktick },
-        { "1", KeyCode.Key1 },
-        { "2", KeyCode.Key2 },
-        { "3", KeyCode.Key3 },
-        { "4", KeyCode.Key4 },
-        { "5", KeyCode.Key5 },
-        { "6", KeyCode.Key6 },
-        { "7", KeyCode.Key7 },
-        { "8", KeyCode.Key8 },
-        { "9", KeyCode.Key9 },
-        { "0", KeyCode.Key0 },
-        { "-", KeyCode.KeyMinus },
-        { "=", KeyCode.KeyEquals },
-        { "Q", KeyCode.KeyQ },
-        { "W", KeyCode.KeyW },
-        { "E", KeyCode.KeyE },
-        { "R", KeyCode.KeyR },
-        { "T", KeyCode.KeyT },
-        { "Y", KeyCode.KeyY },
-        { "U", KeyCode.KeyU },
-        { "I", KeyCode.KeyI },
-        { "O", KeyCode.KeyO },
-        { "P", KeyCode.KeyP },
-        { "[", KeyCode.KeyLeftBracket },
-        { "]", KeyCode.KeyRightBracket },
-        { "\\", KeyCode.KeyBackSlash },
-        { "A", KeyCode.KeyA },
-        { "S", KeyCode.KeyS },
-        { "D", KeyCode.KeyD },
-        { "F", KeyCode.KeyF },
-        { "G", KeyCode.KeyG },
-        { "H", KeyCode.KeyH },
-        { "J", KeyCode.KeyJ },
-        { "K", KeyCode.KeyK },
-        { "L", KeyCode.KeyL },
-        { ";", KeyCode.KeyColon },
-        { "'", KeyCode.KeyQuote },
-        { "Z", KeyCode.KeyZ },
-        { "X", KeyCode.KeyX },
-        { "C", KeyCode.KeyC },
-        { "V", KeyCode.KeyV },
-        { "B", KeyCode.KeyB },
-        { "N", KeyCode.KeyN },
-        { "M", KeyCode.KeyM },
-        { ",", KeyCode.KeyComma },
-        { ".", KeyCode.KeyPeriod },
-        { "/", KeyCode.KeySlash }
-    };
+        foreach(string[] keyValues in DefaultLayout)
+        {
+            KeyCode keyCode = GetKeyCode(keyValues[0]);
+            Keys.Add(new Key(keyCode, keyValues));
+        }
+    }
 
     public void ShiftOff() => IsShift = false;
     public void ShiftOn() => IsShift = true;
@@ -105,7 +63,7 @@ class LayoutBuilder
 
     public void LoadLayout(string filepath)
     {
-        StreamReader sr = new("layout.txt");
+        StreamReader sr = new(filepath);
 
         int keyCode = 0;
 
@@ -147,4 +105,106 @@ class LayoutBuilder
 
         sw.Close();
     }
+
+    private static readonly string[][] DefaultLayout = new string[][]
+    {
+        new string[] { "`", "~" },
+        new string[] { "1", "!" },
+        new string[] { "2", "@" },
+        new string[] { "3", "#" },
+        new string[] { "4", "$" },
+        new string[] { "5", "%" },
+        new string[] { "6", "^" },
+        new string[] { "7", "&" },
+        new string[] { "8", "*" },
+        new string[] { "9", "(" },
+        new string[] { "0", ")" },
+        new string[] { "-", "_" },
+        new string[] { "=", "+" },
+        new string[] { "q", "Q" },
+        new string[] { "w", "W" },
+        new string[] { "e", "E" },
+        new string[] { "r", "R" },
+        new string[] { "t", "T" },
+        new string[] { "y", "Y" },
+        new string[] { "u", "U" },
+        new string[] { "i", "I" },
+        new string[] { "o", "O" },
+        new string[] { "p", "P" },
+        new string[] { "[", "{" },
+        new string[] { "]", "}" },
+        new string[] { "\\", "|" },
+        new string[] { "a", "A" },
+        new string[] { "s", "S" },
+        new string[] { "d", "D" },
+        new string[] { "f", "F" },
+        new string[] { "g", "G" },
+        new string[] { "h", "H" },
+        new string[] { "j", "J" },
+        new string[] { "k", "K" },
+        new string[] { "l", "L" },
+        new string[] { ";", ":" },
+        new string[] { "'", "\"" },
+        new string[] { "z", "Z" },
+        new string[] { "x", "X" },
+        new string[] { "c", "C" },
+        new string[] { "v", "V" },
+        new string[] { "b", "B" },
+        new string[] { "n", "N" },
+        new string[] { "m", "M" },
+        new string[] { ",", "<" },
+        new string[] { ".", ">" },
+        new string[] { "/", "?" },
+    };
+
+    Dictionary<string, KeyCode> KeyMap = new Dictionary<string, KeyCode>
+    {
+        { "`", KeyCode.KeyBacktick },
+        { "1", KeyCode.Key1 },
+        { "2", KeyCode.Key2 },
+        { "3", KeyCode.Key3 },
+        { "4", KeyCode.Key4 },
+        { "5", KeyCode.Key5 },
+        { "6", KeyCode.Key6 },
+        { "7", KeyCode.Key7 },
+        { "8", KeyCode.Key8 },
+        { "9", KeyCode.Key9 },
+        { "0", KeyCode.Key0 },
+        { "-", KeyCode.KeyMinus },
+        { "=", KeyCode.KeyEquals },
+        { "q", KeyCode.KeyQ },
+        { "w", KeyCode.KeyW },
+        { "e", KeyCode.KeyE },
+        { "r", KeyCode.KeyR },
+        { "t", KeyCode.KeyT },
+        { "y", KeyCode.KeyY },
+        { "u", KeyCode.KeyU },
+        { "i", KeyCode.KeyI },
+        { "o", KeyCode.KeyO },
+        { "p", KeyCode.KeyP },
+        { "[", KeyCode.KeyLeftBracket },
+        { "]", KeyCode.KeyRightBracket },
+        { "\\", KeyCode.KeyBackSlash },
+        { "a", KeyCode.KeyA },
+        { "s", KeyCode.KeyS },
+        { "d", KeyCode.KeyD },
+        { "f", KeyCode.KeyF },
+        { "g", KeyCode.KeyG },
+        { "h", KeyCode.KeyH },
+        { "j", KeyCode.KeyJ },
+        { "k", KeyCode.KeyK },
+        { "l", KeyCode.KeyL },
+        { ";", KeyCode.KeyColon },
+        { "'", KeyCode.KeyQuote },
+        { "z", KeyCode.KeyZ },
+        { "x", KeyCode.KeyX },
+        { "c", KeyCode.KeyC },
+        { "v", KeyCode.KeyV },
+        { "b", KeyCode.KeyB },
+        { "n", KeyCode.KeyN },
+        { "m", KeyCode.KeyM },
+        { ",", KeyCode.KeyComma },
+        { ".", KeyCode.KeyPeriod },
+        { "/", KeyCode.KeySlash }
+    };
 }

@@ -9,10 +9,40 @@ class Key
     public Key(KeyCode keyCode, string[] values)
     {
         KeyCode = keyCode;
-        Normal   = values[0];
-        Shift    = values[1];
-        Alt      = values[2];
-        ShiftAlt = values[3];
+
+        // if(values.Length < 1 || values.Length > 4)
+        // {
+        //     throw new FormatException("Wrong format!");
+        // }
+
+        if(values.Length == 1)
+        {
+            Normal   = values[0];
+            Shift    = "None";
+            Alt      = "None";
+            ShiftAlt = "None";
+        }
+        else if(values.Length == 2)
+        {
+            Normal   = values[0];
+            Shift    = values[1];
+            Alt      = "None";
+            ShiftAlt = "None";
+        }
+        else if(values.Length == 3)
+        {
+            Normal   = values[0];
+            Shift    = values[1];
+            Alt      = values[2];
+            ShiftAlt = "None";
+        }
+        else if(values.Length == 3)
+        {
+            Normal   = values[0];
+            Shift    = values[1];
+            Alt      = values[2];
+            ShiftAlt = values[3];
+        }
     }
 
     public override string ToString()
