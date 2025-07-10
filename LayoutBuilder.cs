@@ -92,13 +92,8 @@ class LayoutBuilder
         while(sr.Peek() != -1)
         {
             string[] values = sr.ReadLine()!.Split(' ');
-            foreach(var value in values)
-            {
-                Console.Write(value + " ");
-            }
 
             Keys.Add(new Key((KeyCode) keyCode, values));
-            Console.WriteLine(Keys[Keys.Count - 1].Normal);
             keyCode++;
         }
 
