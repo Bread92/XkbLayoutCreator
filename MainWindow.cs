@@ -182,7 +182,9 @@ namespace LayoutMaker
 
         private void OnButtonClicked(object sender, EventArgs e)
         {
-            Dialog inputDialog = new Dialog("Preferred Character", this, DialogFlags.Modal);
+            var button = sender as Button;
+            KeyCode keyCode = lb.GetKeyCodeByIndex(int.Parse(button.Name));
+            Dialog inputDialog = new Dialog(keyCode.ToString(), this, DialogFlags.Modal);
             inputDialog.AddButton("Cancel", ResponseType.Cancel);
             inputDialog.AddButton("OK", ResponseType.Accept);
 
@@ -194,8 +196,7 @@ namespace LayoutMaker
             {
                 preferredCharacter = entry.Text;
 
-                var button = sender as Button;
-                lb.SetKeyByIndex(int.Parse(button.Name), preferredCharacter);
+                lb.SetKey(keyCode, preferredCharacter);
                 UpdateKeyLabels();
             }
 

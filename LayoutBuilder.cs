@@ -45,6 +45,11 @@ class LayoutBuilder
         }
     }
 
+    public KeyCode GetKeyCodeByIndex(int index)
+    {
+        return Keys[index].KeyCode;
+    }
+
     public void SetKeyByIndex(int index, string value)
     {
         if(!IsShift && !IsAlt)
