@@ -182,6 +182,7 @@ class LayoutBuilder
         new string[] { ",", "<" },
         new string[] { ".", ">" },
         new string[] { "/", "?" },
+        new string[] { " ", " " },
     };
 
     Dictionary<string, KeyCode> KeyMap = new Dictionary<string, KeyCode>
@@ -232,6 +233,7 @@ class LayoutBuilder
         { "m", KeyCode.KeyM },
         { ",", KeyCode.KeyComma },
         { ".", KeyCode.KeyPeriod },
-        { "/", KeyCode.KeySlash }
+        { "/", KeyCode.KeySlash },
+        { " ", KeyCode.KeySpace }
     };
 }

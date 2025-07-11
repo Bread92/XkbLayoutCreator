@@ -95,4 +95,5 @@ public enum KeyCode
     KeyPeriod, 			// .
     KeyComma,  			// ,
     KeySlash,  			// /
+    KeySpace,  			// Space
 }

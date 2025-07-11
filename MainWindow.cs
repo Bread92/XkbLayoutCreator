@@ -17,9 +17,9 @@ using Gtk;
 // - Combobox to choose which language's variant (load from xkb/symbols dir)
 // - xkb+xml file generation
 // - Export option, which will generate xkb+xml files
+// - Option for allowing changing system files
 // - Backing up system files before changing (once! check for <name>.bak
 //   before rewriting!)
-// - Option for allowing changing system files
 // ? Allow making your own languages instead of only variants(?)
 namespace LayoutMaker
 {
@@ -28,29 +28,37 @@ namespace LayoutMaker
         private string preferredCharacter = string.Empty;
         private string filePath = string.Empty;
 
-        public List<Button> buttons = new List<Button>();
+        public List<List<Button>> buttons = new List<List<Button>>();
         public List<Button> Row1 = new List<Button>();
         public List<Button> Row2 = new List<Button>();
         public List<Button> Row3 = new List<Button>();
         public List<Button> Row4 = new List<Button>();
+        public List<Button> Row5 = new List<Button>();
 
         private const int Row1Length = 13;
         private const int Row2Length = 13;
         private const int Row3Length = 11;
         private const int Row4Length = 10;
+        private const int Row5Length = 1;
 
         private LayoutBuilder lb = new LayoutBuilder();
-        public Grid grid = new Grid();
         public Box mainVbox = new Box(Orientation.Vertical, 2);
         public Box rowBox1 = new Box(Orientation.Horizontal, 2);
         public Box rowBox2 = new Box(Orientation.Horizontal, 2);
         public Box rowBox3 = new Box(Orientation.Horizontal, 2);
         public Box rowBox4 = new Box(Orientation.Horizontal, 2);
+        public Box rowBox5 = new Box(Orientation.Horizontal, 2);
 
         public MainWindow() : base("Keyboard Layout Creator")
         {
             SetDefaultSize(700, 200);
             SetPosition(WindowPosition.Center);
+
+            buttons.Add(Row1);
+            buttons.Add(Row2);
+            buttons.Add(Row3);
+            buttons.Add(Row4);
+            buttons.Add(Row5);
 
             // Menu Bar
             MenuBar mb = new MenuBar();
@@ -87,16 +95,14 @@ namespace LayoutMaker
             shiftCheck.Toggled += OnShiftToggled;
             altCheck.Toggled += OnAltToggled;
 
-            // Keyboard Layout
-            grid.RowSpacing = 5;
-            grid.ColumnSpacing = 5;
-
             CreateButtonLayout();
 
+            // Keyboard Layout
             mainVbox.PackStart(rowBox1, false, false, 0);
             mainVbox.PackStart(rowBox2, false, false, 0);
             mainVbox.PackStart(rowBox3, false, false, 0);
             mainVbox.PackStart(rowBox4, false, false, 0);
+            mainVbox.PackStart(rowBox5, false, false, 0);
             mainVbox.PackStart(shiftCheck, false, false, 0);
             mainVbox.PackStart(altCheck, false, false, 0);
 
@@ -236,36 +242,15 @@ namespace LayoutMaker
         {
             int keyIndex = 0;
 
-            foreach(Button b in Row1)
+            foreach(List<Button> buttonList in buttons)
             {
-                if(b.Sensitive)
+                foreach(Button b in buttonList)
                 {
-                    b.Label = GetKeyLabel(lb, keyIndex);
-                    keyIndex++;
-                }
-            }
-            foreach(Button b in Row2)
-            {
-                if(b.Sensitive)
-                {
-                    b.Label = GetKeyLabel(lb, keyIndex);
-                    keyIndex++;
-                }
-            }
-            foreach(Button b in Row3)
-            {
-                if(b.Sensitive)
-                {
-                    b.Label = GetKeyLabel(lb, keyIndex);
-                    keyIndex++;
-                }
-            }
-            foreach(Button b in Row4)
-            {
-                if(b.Sensitive)
-                {
-                    b.Label = GetKeyLabel(lb, keyIndex);
-                    keyIndex++;
+                    if(b.Sensitive)
+                    {
+                        b.Label = GetKeyLabel(lb, keyIndex);
+                        keyIndex++;
+                    }
                 }
             }
         }
@@ -323,7 +308,7 @@ namespace LayoutMaker
            }
 
            // CapsLock
-           Button capsLock = new Button("CLock");
+           Button capsLock = new Button("Caps");
            capsLock.Sensitive = false;
            rowBox3.PackStart(capsLock, false, false, 0);
            Row3.Add(capsLock);
@@ -352,7 +337,7 @@ namespace LayoutMaker
            Row3.Add(enter);
 
            // LShift
-           Button lShift = new Button("Left Shift");
+           Button lShift = new Button("LShift");
            lShift.Sensitive = false;
            rowBox4.PackStart(lShift, false, false, 0);
            Row4.Add(lShift);
@@ -375,10 +360,57 @@ namespace LayoutMaker
            }
 
            // Enter
-           Button rShift = new Button("Right Shift");
+           Button rShift = new Button("RShift");
            rShift.Sensitive = false;
            rowBox4.PackStart(rShift, false, false, 0);
            Row4.Add(rShift);
+
+
+           Button lCtrl = new Button("Ctrl");
+           lCtrl.Sensitive = false;
+           rowBox5.PackStart(lCtrl, false, false, 0);
+           Row5.Add(lCtrl);
+
+           Button super = new Button("X");
+           super.Sensitive = false;
+           rowBox5.PackStart(super, false, false, 0);
+           Row5.Add(super);
+
+           Button lAlt = new Button("Alt");
+           lAlt.Sensitive = false;
+           rowBox5.PackStart(lAlt, false, false, 0);
+           Row5.Add(lAlt);
+
+
+           for(int i = 0; i < Row5Length; i++)
+           {
+               keyLabel = GetKeyLabel(lb, keyIndex);
+
+               if (keyLabel != "None")
+               {
+                   Button newButton = new Button(keyLabel);
+                   newButton.Name = keyIndex.ToString();
+                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
+
+                   int minWidth = 350;
+                   newButton.SetSizeRequest(minWidth, -1);
+
+                   rowBox5.PackStart(newButton, false, false, 0);
+                   Row5.Add(newButton);
+               }
+
+               keyIndex++;
+           }
+
+           Button rAlt = new Button("Alt");
+           rAlt.Sensitive = false;
+           rowBox5.PackStart(rAlt, false, false, 0);
+           Row5.Add(rAlt);
+
+           Button rCtrl = new Button("Ctrl");
+           rCtrl.Sensitive = false;
+           rowBox5.PackStart(rCtrl, false, false, 0);
+           Row5.Add(rCtrl);
         }
 
         private string GetKeyLabel(LayoutBuilder lb, int index)
