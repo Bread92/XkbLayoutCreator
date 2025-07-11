@@ -1,5 +1,5 @@
 /*
- * Project Name: Linux Keyboard Layout Creator (LKLC)
+ * Project Name: Xkb Keyboard Layout Creator (XKLC)
  * Author: Bread92 <vaneck.van2019@gmail.com>
  * Date: July 10, 2025
  * Description: A simple UI app for creating your own keyboard layout.
@@ -13,6 +13,14 @@ using System.Text;
 using System.Collections.Generic;
 using Gtk;
 
+// TODO:
+// - Combobox to choose which language's variant (load from xkb/symbols dir)
+// - xkb+xml file generation
+// - Export option, which will generate xkb+xml files
+// - Backing up system files before changing (once! check for <name>.bak
+//   before rewriting!)
+// - Option for allowing changing system files
+// ? Allow making your own languages instead of only variants(?)
 namespace LayoutMaker
 {
     class MainWindow : Window
@@ -53,15 +61,19 @@ namespace LayoutMaker
 
             MenuItem save = new MenuItem("Save");
             MenuItem saveAs = new MenuItem("Save As");
+            MenuItem export = new MenuItem("Export");
             MenuItem load = new MenuItem("Load");
             MenuItem exit = new MenuItem("Exit");
+
             save.Activated += SaveFile;
             saveAs.Activated += SaveFileAs;
+            export.Activated += ExportFile;
             load.Activated += LoadFile;
             exit.Activated += ExitMenu;
 
             filemenu.Append(save);
             filemenu.Append(saveAs);
+            filemenu.Append(export);
             filemenu.Append(load);
             filemenu.Append(exit);
 
@@ -176,6 +188,11 @@ namespace LayoutMaker
             }
 
             saveDialog.Destroy();
+        }
+
+        private void ExportFile(object sender, EventArgs a)
+        {
+            Console.WriteLine("TODO Export");
         }
 
         void OnShiftToggled(object sender, EventArgs args)

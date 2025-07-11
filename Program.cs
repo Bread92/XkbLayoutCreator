@@ -1,5 +1,5 @@
 /*
- * Project Name: Linux Keyboard Layout Creator (LKLC)
+ * Project Name: Xkb Keyboard Layout Creator (XKLC)
  * Author: Bread92 <vaneck.van2019@gmail.com>
  * Date: July 10, 2025
  * Description: A simple UI app for creating your own keyboard layout.
