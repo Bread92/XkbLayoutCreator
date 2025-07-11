@@ -59,7 +59,9 @@ namespace LayoutMaker
             saveAs.Activated += SaveFileAs;
             load.Activated += LoadFile;
             exit.Activated += ExitMenu;
+
             filemenu.Append(save);
+            filemenu.Append(saveAs);
             filemenu.Append(load);
             filemenu.Append(exit);
 
@@ -158,6 +160,7 @@ namespace LayoutMaker
             if (saveDialog.Run() == (int)ResponseType.Accept)
             {
                 string filePath = saveDialog.Filename;
+                this.filePath = filePath;
                 string fileText = CreateKlcFile();
                 System.IO.File.WriteAllText(filePath, fileText);
                 Console.WriteLine($"Saved file: {filePath}");
