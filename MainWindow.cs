@@ -155,7 +155,16 @@ namespace LayoutMaker
             filter.AddPattern("*.klc");
             saveDialog.AddFilter(filter);
 
-            saveDialog.CurrentName="my_layout.klc";
+            if(filePath == string.Empty)
+            {
+                saveDialog.CurrentName="my_layout.klc";
+            }
+            else
+            {
+                // Collision with Widget.Path
+                string fileName = System.IO.Path.GetFileName(filePath);
+                saveDialog.CurrentName=fileName;
+            }
 
             if (saveDialog.Run() == (int)ResponseType.Accept)
             {
