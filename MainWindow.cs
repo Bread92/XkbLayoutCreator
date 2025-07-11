@@ -33,6 +33,11 @@ namespace LayoutMaker
 
         private LayoutBuilder lb = new LayoutBuilder();
         public Grid grid = new Grid();
+        public Box mainVbox = new Box(Orientation.Vertical, 2);
+        public Box rowBox1 = new Box(Orientation.Horizontal, 2);
+        public Box rowBox2 = new Box(Orientation.Horizontal, 2);
+        public Box rowBox3 = new Box(Orientation.Horizontal, 2);
+        public Box rowBox4 = new Box(Orientation.Horizontal, 2);
 
         public MainWindow() : base("Keyboard Layout Creator")
         {
@@ -60,7 +65,6 @@ namespace LayoutMaker
 
             mb.Append(file);
 
-            Box mainVbox = new Box(Orientation.Vertical, 2);
             mainVbox.PackStart(mb, false, false, 0);
 
             // Check Boxes
@@ -75,7 +79,10 @@ namespace LayoutMaker
 
             CreateButtonLayout();
 
-            mainVbox.PackStart(grid, true, true, 0);
+            mainVbox.PackStart(rowBox1, false, false, 0);
+            mainVbox.PackStart(rowBox2, false, false, 0);
+            mainVbox.PackStart(rowBox3, false, false, 0);
+            mainVbox.PackStart(rowBox4, false, false, 0);
             mainVbox.PackStart(shiftCheck, false, false, 0);
             mainVbox.PackStart(altCheck, false, false, 0);
 
@@ -173,7 +180,7 @@ namespace LayoutMaker
             UpdateKeyLabels();
         }
 
-        private void Button_Clicked(object sender, EventArgs e)
+        private void OnButtonClicked(object sender, EventArgs e)
         {
             Dialog inputDialog = new Dialog("Preferred Character", this, DialogFlags.Modal);
             inputDialog.AddButton("Cancel", ResponseType.Cancel);
@@ -198,25 +205,38 @@ namespace LayoutMaker
         private void UpdateKeyLabels()
         {
             int keyIndex = 0;
+
             foreach(Button b in Row1)
             {
-                b.Label = GetKeyLabel(lb, keyIndex);
-                keyIndex++;
+                if(b.Sensitive)
+                {
+                    b.Label = GetKeyLabel(lb, keyIndex);
+                    keyIndex++;
+                }
             }
             foreach(Button b in Row2)
             {
-                b.Label = GetKeyLabel(lb, keyIndex);
-                keyIndex++;
+                if(b.Sensitive)
+                {
+                    b.Label = GetKeyLabel(lb, keyIndex);
+                    keyIndex++;
+                }
             }
             foreach(Button b in Row3)
             {
-                b.Label = GetKeyLabel(lb, keyIndex);
-                keyIndex++;
+                if(b.Sensitive)
+                {
+                    b.Label = GetKeyLabel(lb, keyIndex);
+                    keyIndex++;
+                }
             }
             foreach(Button b in Row4)
             {
-                b.Label = GetKeyLabel(lb, keyIndex);
-                keyIndex++;
+                if(b.Sensitive)
+                {
+                    b.Label = GetKeyLabel(lb, keyIndex);
+                    keyIndex++;
+                }
             }
         }
 
@@ -225,74 +245,110 @@ namespace LayoutMaker
             int keyIndex = 0;
             string keyLabel = "*";
 
-            for (int col = 0; col < Row1Length; col++)
-            {
-                keyLabel = GetKeyLabel(lb, keyIndex);
+           for(int i = 0; i < Row1Length; i++)
+           {
+               keyLabel = GetKeyLabel(lb, keyIndex);
 
-                if (keyLabel != "None")
-                {
-                    Button newButton = new Button(keyLabel);
-                    newButton.Name = keyIndex.ToString();
-                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
+               if (keyLabel != "None")
+               {
+                   Button newButton = new Button(keyLabel);
+                   newButton.Name = keyIndex.ToString();
+                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
 
-                    grid.Attach(newButton, col, 0, 1, 1);
-                    Row1.Add(newButton);
-                }
+                   rowBox1.PackStart(newButton, false, false, 0);
+                   Row1.Add(newButton);
+               }
 
-                keyIndex++;
-            }
-            for (int col = 0; col < Row2Length; col++)
-            {
-                keyLabel = GetKeyLabel(lb, keyIndex);
+               keyIndex++;
 
-                if (keyLabel != "None")
-                {
-                    Button newButton = new Button(keyLabel);
-                    newButton.Name = keyIndex.ToString();
-                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
+           }
 
-                    grid.Attach(newButton, col, 1, 1, 1);
-                    Row2.Add(newButton);
-                }
+           // BackSpace Key
+           Button backspace = new Button("BackSpace");
+           backspace.Sensitive = false;
+           rowBox1.PackStart(backspace, false, false, 0);
+           Row1.Add(backspace);
 
-                keyIndex++;
-            }
+           // Tab
+           Button tab = new Button("Tab");
+           tab.Sensitive = false;
+           rowBox2.PackStart(tab, false, false, 0);
+           Row2.Add(tab);
 
-            for (int col = 0; col < Row3Length; col++)
-            {
-                keyLabel = GetKeyLabel(lb, keyIndex);
+           for(int i = 0; i < Row2Length; i++)
+           {
+               keyLabel = GetKeyLabel(lb, keyIndex);
 
-                if (keyLabel != "None")
-                {
-                    Button newButton = new Button(keyLabel);
-                    newButton.Name = keyIndex.ToString();
-                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
+               if (keyLabel != "None")
+               {
+                   Button newButton = new Button(keyLabel);
+                   newButton.Name = keyIndex.ToString();
+                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
 
-                    grid.Attach(newButton, col, 2, 1, 1);
-                    Row3.Add(newButton);
-                }
+                   rowBox2.PackStart(newButton, false, false, 0);
+                   Row2.Add(newButton);
+               }
 
-                keyIndex++;
-            }
+               keyIndex++;
+           }
 
-            for (int col = 0; col < Row4Length; col++)
-            {
-                keyLabel = GetKeyLabel(lb, keyIndex);
+           // CapsLock
+           Button capsLock = new Button("CLock");
+           capsLock.Sensitive = false;
+           rowBox3.PackStart(capsLock, false, false, 0);
+           Row3.Add(capsLock);
 
-                if (keyLabel != "None")
-                {
-                    Button newButton = new Button(keyLabel);
-                    newButton.Name = keyIndex.ToString();
-                    newButton.Clicked += (sender, e) => Button_Clicked(sender, e);
+           for(int i = 0; i < Row3Length; i++)
+           {
+               keyLabel = GetKeyLabel(lb, keyIndex);
 
-                    grid.Attach(newButton, col, 3, 1, 1);
-                    Row4.Add(newButton);
-                }
+               if (keyLabel != "None")
+               {
+                   Button newButton = new Button(keyLabel);
+                   newButton.Name = keyIndex.ToString();
+                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
 
-                keyIndex++;
-            }
+                   rowBox3.PackStart(newButton, false, false, 0);
+                   Row3.Add(newButton);
+               }
 
-            keyIndex = 20;
+               keyIndex++;
+           }
+
+           // Enter
+           Button enter = new Button("Enter");
+           enter.Sensitive = false;
+           rowBox3.PackStart(enter, false, false, 0);
+           Row3.Add(enter);
+
+           // LShift
+           Button lShift = new Button("Left Shift");
+           lShift.Sensitive = false;
+           rowBox4.PackStart(lShift, false, false, 0);
+           Row4.Add(lShift);
+
+           for(int i = 0; i < Row4Length; i++)
+           {
+               keyLabel = GetKeyLabel(lb, keyIndex);
+
+               if (keyLabel != "None")
+               {
+                   Button newButton = new Button(keyLabel);
+                   newButton.Name = keyIndex.ToString();
+                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
+
+                   rowBox4.PackStart(newButton, false, false, 0);
+                   Row4.Add(newButton);
+               }
+
+               keyIndex++;
+           }
+
+           // Enter
+           Button rShift = new Button("Right Shift");
+           rShift.Sensitive = false;
+           rowBox4.PackStart(rShift, false, false, 0);
+           Row4.Add(rShift);
         }
 
         private string GetKeyLabel(LayoutBuilder lb, int index)
