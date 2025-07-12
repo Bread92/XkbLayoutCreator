@@ -198,7 +198,9 @@ namespace LayoutMaker
 
         private void ExportFile(object sender, EventArgs a)
         {
-            Console.WriteLine("TODO Export");
+            // TODO: Generate dialog that says "The program will generate .xkb and .xml file now"
+            LayoutGenerator lg = new LayoutGenerator();
+            lg.Generate(lb.Keys, "us", "shvn");
         }
 
         void OnShiftToggled(object sender, EventArgs args)
@@ -248,7 +250,10 @@ namespace LayoutMaker
                 {
                     if(b.Sensitive)
                     {
-                        b.Label = GetKeyLabel(lb, keyIndex);
+                        string label = GetKeyLabel(lb, keyIndex);
+
+                        b.Label = label == "None" ? " " : label;
+
                         keyIndex++;
                     }
                 }

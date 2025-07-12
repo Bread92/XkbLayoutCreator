@@ -1,3 +1,5 @@
+using System.Text;
+
 class Key
 {
     public KeyCode KeyCode  { get; set; }
@@ -42,7 +44,14 @@ class Key
 
     public override string ToString()
     {
-        return $"{Normal} {Shift} {Alt} {ShiftAlt}";
+        StringBuilder sb = new StringBuilder();
+
+        sb.Append(Normal != "None" ? $"{Normal}" : "");
+        sb.Append(Shift != "None" ? $" {Shift}" : "");
+        sb.Append(Alt != "None" ? $" {Alt}" : "");
+        sb.Append(ShiftAlt != "None" ? $" {ShiftAlt}" : "");
+
+        return sb.ToString();
     }
 }
 
@@ -92,8 +101,8 @@ public enum KeyCode
     KeyB,      			// B
     KeyN,      			// N
     KeyM,      			// M
-    KeyPeriod, 			// .
     KeyComma,  			// ,
+    KeyPeriod, 			// .
     KeySlash,  			// /
     KeySpace,  			// Space
 }
