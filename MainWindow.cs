@@ -96,6 +96,7 @@ namespace LayoutMaker
             altCheck.Toggled += OnAltToggled;
 
             CreateButtonLayout();
+            UpdateKeyLabels();
 
             // Keyboard Layout
             mainVbox.PackStart(rowBox1, false, false, 0);
@@ -233,6 +234,14 @@ namespace LayoutMaker
             {
                 preferredCharacter = entry.Text;
 
+                if(entry.Text == string.Empty)
+                {
+                    lb.SetKey(keyCode, "NoSymbol");
+                    inputDialog.Destroy();
+                    UpdateKeyLabels();
+                    return;
+                }
+
                 lb.SetKey(keyCode, preferredCharacter);
                 UpdateKeyLabels();
             }
@@ -252,7 +261,18 @@ namespace LayoutMaker
                     {
                         string label = GetKeyLabel(lb, keyIndex);
 
-                        b.Label = label == "None" ? " " : label;
+                        if(label == " ")
+                        {
+                            b.Label = "[Space]";
+                        }
+                        else if(label == "NoSymbol")
+                        {
+                            b.Label = "[]";
+                        }
+                        else
+                        {
+                            b.Label = label;
+                        }
 
                         keyIndex++;
                     }
@@ -269,7 +289,7 @@ namespace LayoutMaker
            {
                keyLabel = GetKeyLabel(lb, keyIndex);
 
-               if (keyLabel != "None")
+               if (keyLabel != "NoSymbol")
                {
                    Button newButton = new Button(keyLabel);
                    newButton.Name = keyIndex.ToString();
@@ -299,7 +319,7 @@ namespace LayoutMaker
            {
                keyLabel = GetKeyLabel(lb, keyIndex);
 
-               if (keyLabel != "None")
+               if (keyLabel != "NoSymbol")
                {
                    Button newButton = new Button(keyLabel);
                    newButton.Name = keyIndex.ToString();
@@ -322,7 +342,7 @@ namespace LayoutMaker
            {
                keyLabel = GetKeyLabel(lb, keyIndex);
 
-               if (keyLabel != "None")
+               if (keyLabel != "NoSymbol")
                {
                    Button newButton = new Button(keyLabel);
                    newButton.Name = keyIndex.ToString();
@@ -351,7 +371,7 @@ namespace LayoutMaker
            {
                keyLabel = GetKeyLabel(lb, keyIndex);
 
-               if (keyLabel != "None")
+               if (keyLabel != "NoSymbol")
                {
                    Button newButton = new Button(keyLabel);
                    newButton.Name = keyIndex.ToString();
@@ -391,7 +411,7 @@ namespace LayoutMaker
            {
                keyLabel = GetKeyLabel(lb, keyIndex);
 
-               if (keyLabel != "None")
+               if (keyLabel != "NoSymbol")
                {
                    Button newButton = new Button(keyLabel);
                    newButton.Name = keyIndex.ToString();
@@ -438,7 +458,7 @@ namespace LayoutMaker
             }
             else
             {
-                return string.Empty;
+                return "[]";
             }
         }
 
@@ -448,7 +468,7 @@ namespace LayoutMaker
 
             foreach(var key in lb.Keys)
             {
-                sb.AppendLine(key.ToString());
+                sb.AppendLine(key.ToKlcString());
             }
 
             return sb.ToString();

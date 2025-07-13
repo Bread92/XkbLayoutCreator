@@ -15,23 +15,23 @@ class Key
         if(values.Length == 1)
         {
             Normal   = values[0];
-            Shift    = "None";
-            Alt      = "None";
-            ShiftAlt = "None";
+            Shift    = "NoSymbol";
+            Alt      = "NoSymbol";
+            ShiftAlt = "NoSymbol";
         }
         else if(values.Length == 2)
         {
             Normal   = values[0];
             Shift    = values[1];
-            Alt      = "None";
-            ShiftAlt = "None";
+            Alt      = "NoSymbol";
+            ShiftAlt = "NoSymbol";
         }
         else if(values.Length == 3)
         {
             Normal   = values[0];
             Shift    = values[1];
             Alt      = values[2];
-            ShiftAlt = "None";
+            ShiftAlt = "NoSymbol";
         }
         else if(values.Length == 4)
         {
@@ -42,14 +42,26 @@ class Key
         }
     }
 
+    public string ToKlcString()
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.Append(Normal != "NoSymbol" ? $"{Normal}" : "NoSymbol");
+        sb.Append(Shift != "NoSymbol" ? $" // {Shift}" : " // NoSymbol");
+        sb.Append(Alt != "NoSymbol" ? $" // {Alt}" : " // NoSymbol");
+        sb.Append(ShiftAlt != "NoSymbol" ? $" // {ShiftAlt}" : " // NoSymbol");
+
+        return sb.ToString();
+    }
+
     public override string ToString()
     {
         StringBuilder sb = new StringBuilder();
 
-        sb.Append(Normal != "None" ? $"{Normal}" : "");
-        sb.Append(Shift != "None" ? $" {Shift}" : "");
-        sb.Append(Alt != "None" ? $" {Alt}" : "");
-        sb.Append(ShiftAlt != "None" ? $" {ShiftAlt}" : "");
+        sb.Append(Normal != "NoSymbol" ? $"{Normal}" : " ");
+        sb.Append(Shift != "NoSymbol" ? $" {Shift}" : " ");
+        sb.Append(Alt != "NoSymbol" ? $" {Alt}" : " ");
+        sb.Append(ShiftAlt != "NoSymbol" ? $" {ShiftAlt}" : "");
 
         return sb.ToString();
     }

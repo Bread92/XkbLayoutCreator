@@ -16,29 +16,37 @@ class LayoutGenerator
         {
             string strKey = XkbKeys[key.KeyCode];
             string utf32str = string.Empty;
-            sw.Write($"  key <{strKey}> {{ [");
+            sw.Write($"  key <{strKey}> {{ [ ");
 
 
-            if(key.Normal != "None")
+            List<string> strKeys = new List<string>()
             {
-                utf32str = GetUtf32String(key.Normal);
-                sw.Write($" {utf32str}");
-            }
-            if(key.Shift != "None")
+                key.Normal,
+                key.Shift,
+                key.Alt,
+                key.ShiftAlt
+            };
+
+            // Remove trailing NoSymbols
+            while(strKeys[strKeys.Count - 1] == "NoSymbol")
             {
-                utf32str = GetUtf32String(key.Shift);
-                sw.Write($", {utf32str}");
+                strKeys.RemoveAt(strKeys.Count - 1);
             }
-            if(key.Alt != "None")
+
+            // Turn symbols into hex form
+            for(int i = 0; i < strKeys.Count; i++)
             {
-                utf32str = GetUtf32String(key.Alt);
-                sw.Write($", {utf32str}");
+                if(strKeys[i] != "NoSymbol")
+                {
+                    if(strKeys[i].Length == 1)
+                    {
+                        strKeys[i] = GetUtf32String(strKeys[i]);
+                    }
+                }
             }
-            if(key.ShiftAlt != "None")
-            {
-                utf32str = GetUtf32String(key.ShiftAlt);
-                sw.Write($", {utf32str}");
-            }
+
+            sw.Write(string.Join(", ", strKeys.ToArray()));
+
 
             sw.Write(" ] };");
             sw.WriteLine($" // {key.ToString()}\t{key.KeyCode}");
