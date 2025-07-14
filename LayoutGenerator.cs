@@ -4,7 +4,14 @@ using System.IO;
 
 class LayoutGenerator
 {
-    public void Generate(List<Key> keys, string lang, string variantName)
+
+    public void Generate(List<Key> keys, string lang, string variantName, string shortDesc)
+    {
+        GenerateXkb(keys, lang, variantName);
+        GenerateXml(variantName, shortDesc);
+    }
+
+    public void GenerateXkb(List<Key> keys, string lang, string variantName)
     {
         bool altGr = false;
 
@@ -63,6 +70,20 @@ class LayoutGenerator
         }
 
         sw.WriteLine("};");
+
+        sw.Close();
+    }
+
+    public void GenerateXml(string variantName, string shortDesc)
+    {
+        StreamWriter sw = new StreamWriter($"{variantName}.xml");
+
+        sw.WriteLine("<variant>");
+        sw.WriteLine("  <configItem>");
+        sw.WriteLine($"    <name>{variantName}</name>");
+        sw.WriteLine($"    <description>{shortDesc}</description>");
+        sw.WriteLine("  </configItem>");
+        sw.WriteLine("</variant>");
 
         sw.Close();
     }

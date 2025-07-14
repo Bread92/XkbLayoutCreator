@@ -211,7 +211,7 @@ namespace LayoutMaker
             SaveFile();
             // TODO: Generate dialog that says "The program will generate .xkb and .xml file now"
             LayoutGenerator lg = new LayoutGenerator();
-            lg.Generate(lb.Keys, "us", "shvn");
+            lg.Generate(lb.Keys, "us", "shvn", "English (Shavian)");
         }
 
         void OnShiftToggled(object sender, EventArgs args)
