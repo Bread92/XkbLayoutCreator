@@ -281,22 +281,45 @@ namespace LayoutMaker
             inputDialog.ContentArea.PackStart(entry, true, true, 0);
             inputDialog.ShowAll();
 
-            if (inputDialog.Run() == (int)ResponseType.Accept)
-            {
-                preferredCharacter = entry.Text;
+            bool validInput = false;
 
-                if(entry.Text == string.Empty)
+            while (!validInput)
+            {
+                if (inputDialog.Run() == (int)ResponseType.Accept)
                 {
-                    lb.SetKey(keyCode, "NoSymbol");
+                    preferredCharacter = entry.Text;
+
+                    if (preferredCharacter.Length > 1)
+                    {
+                        MessageDialog warningDialog = new MessageDialog(
+                                this,
+                                DialogFlags.Modal,
+                                MessageType.Warning,
+                                ButtonsType.Ok,
+                                "Please enter exactly one character."
+                                );
+                        warningDialog.Run();
+                        warningDialog.Destroy();
+                    }
+                    else
+                    {
+                        if(preferredCharacter == string.Empty)
+                        {
+                            preferredCharacter = "NoSymbol";
+                        }
+
+                        lb.SetKey(keyCode, preferredCharacter);
+                        validInput = true;
+                    }
+                }
+                else
+                {
                     inputDialog.Destroy();
-                    UpdateKeyLabels();
                     return;
                 }
-
-                lb.SetKey(keyCode, preferredCharacter);
-                UpdateKeyLabels();
             }
 
+            UpdateKeyLabels();
             inputDialog.Destroy();
         }
 
