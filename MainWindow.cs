@@ -15,8 +15,6 @@ using Gtk;
 
 // TODO:
 // - Combobox to choose which language's variant (load from xkb/symbols dir)
-// - xkb+xml file generation
-// - Export option, which will generate xkb+xml files
 // - Option for allowing changing system files
 // - Backing up system files before changing (once! check for <name>.bak
 //   before rewriting!)
