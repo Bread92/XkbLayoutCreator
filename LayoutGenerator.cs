@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System;
 
 class LayoutGenerator
 {
@@ -8,17 +9,18 @@ class LayoutGenerator
     public void Generate(List<Key> keys, string lang, string variantName, string shortDesc)
     {
         GenerateXkb(keys, lang, variantName);
-        GenerateXml(variantName, shortDesc);
+        GenerateXml(lang, variantName, shortDesc);
     }
 
     public void GenerateXkb(List<Key> keys, string lang, string variantName)
     {
         bool altGr = false;
+        string fileName = $"{lang}_{variantName}";
 
-        StreamWriter sw = new StreamWriter($"{lang}_{variantName}");
+        StreamWriter sw = new StreamWriter(fileName);
 
         sw.WriteLine("default partial alphanumeric_keys modifier_keys");
-        sw.WriteLine($"xkb_symbols \"{variantName}\" {{");
+        sw.WriteLine($"xkb_symbols \"{lang}_{variantName}\" {{");
         sw.WriteLine($"  Name[Group1] = \"{lang}\";");
 
         foreach(var key in keys)
@@ -72,20 +74,26 @@ class LayoutGenerator
         sw.WriteLine("};");
 
         sw.Close();
+
+        Console.WriteLine($"Generated file {fileName}"); 
     }
 
-    public void GenerateXml(string variantName, string shortDesc)
+    public void GenerateXml(string lang, string variantName, string shortDesc)
     {
-        StreamWriter sw = new StreamWriter($"{variantName}.xml");
+        string fileName = $"{lang}_{variantName}.xml";
+
+        StreamWriter sw = new StreamWriter(fileName);
 
         sw.WriteLine("<variant>");
         sw.WriteLine("  <configItem>");
-        sw.WriteLine($"    <name>{variantName}</name>");
+        sw.WriteLine($"    <name>{lang}_{variantName}</name>");
         sw.WriteLine($"    <description>{shortDesc}</description>");
         sw.WriteLine("  </configItem>");
         sw.WriteLine("</variant>");
 
         sw.Close();
+
+        Console.WriteLine($"Generated file {fileName}"); 
     }
 
     private Dictionary<KeyCode, string> XkbKeys = new Dictionary<KeyCode, string>()

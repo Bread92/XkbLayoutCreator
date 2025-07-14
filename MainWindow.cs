@@ -207,9 +207,52 @@ namespace LayoutMaker
         private void ExportFile(object sender, EventArgs a)
         {
             SaveFile();
-            // TODO: Generate dialog that says "The program will generate .xkb and .xml file now"
-            LayoutGenerator lg = new LayoutGenerator();
-            lg.Generate(lb.Keys, "us", "shvn", "English (Shavian)");
+            ShowExportDialog();
+        }
+
+        private void ShowExportDialog()
+        {
+            Dialog exportDialog = new Dialog("Export Layout", this, DialogFlags.Modal);
+            exportDialog.AddButton("Cancel", ResponseType.Cancel);
+            exportDialog.AddButton("OK", ResponseType.Accept);
+
+            // Create a Box to hold the labels and entries
+            Box vbox = new Box(Orientation.Vertical, 5);
+
+            // Create labels and entries
+            Label languageLabel = new Label("Language Code [us, ru, de]:");
+            Entry languageEntry = new Entry();
+
+            Label variantLabel = new Label("Variant's Code [Shavian -> shvn]:");
+            Entry variantEntry = new Entry();
+
+            Label layoutNameLabel = new Label("Layout Description [English (Shavian)]:");
+            Entry layoutNameEntry = new Entry();
+
+            // Pack the labels and entries into the Box
+            vbox.PackStart(languageLabel, false, false, 0);
+            vbox.PackStart(languageEntry, false, false, 5);
+            vbox.PackStart(variantLabel, false, false, 0);
+            vbox.PackStart(variantEntry, false, false, 5);
+            vbox.PackStart(layoutNameLabel, false, false, 0);
+            vbox.PackStart(layoutNameEntry, false, false, 5);
+
+            exportDialog.ContentArea.PackStart(vbox, true, true, 0);
+            exportDialog.ShowAll();
+
+            // Run the dialog and check the response
+            if (exportDialog.Run() == (int)ResponseType.Accept)
+            {
+                string languageCode = languageEntry.Text;
+                string variantCode = variantEntry.Text;
+                string layoutName = layoutNameEntry.Text;
+
+                // Call the LayoutGenerator with the provided information
+                LayoutGenerator lg = new LayoutGenerator();
+                lg.Generate(lb.Keys, languageCode, variantCode, layoutName);
+            }
+
+            exportDialog.Destroy();
         }
 
         void OnShiftToggled(object sender, EventArgs args)
