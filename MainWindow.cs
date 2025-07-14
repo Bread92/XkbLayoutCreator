@@ -9,6 +9,8 @@
 */
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using Gtk;
@@ -25,7 +27,7 @@ namespace LayoutMaker
     {
         private string preferredCharacter = string.Empty;
         private string filePath = string.Empty;
-        private string symbolsPath = "/usr/share/X11/xkb/symbols/";
+        private string symbolsPath = "/usr/share/X11/xkb/symbols";
 
         // ComboBox for Language Selection
         ComboBoxText languageComboBox = new ComboBoxText();
@@ -50,6 +52,7 @@ namespace LayoutMaker
         public Box rowBox3 = new Box(Orientation.Horizontal, 2);
         public Box rowBox4 = new Box(Orientation.Horizontal, 2);
         public Box rowBox5 = new Box(Orientation.Horizontal, 2);
+        public Box checkboxes = new Box(Orientation.Horizontal, 2);
 
         public MainWindow() : base("Keyboard Layout Creator")
         {
@@ -62,7 +65,6 @@ namespace LayoutMaker
             buttons.Add(Row4);
             buttons.Add(Row5);
 
-            // Menu Bar
             MenuBar mb = new MenuBar();
 
             Menu filemenu = new Menu();
@@ -89,31 +91,26 @@ namespace LayoutMaker
 
             mb.Append(file);
 
-            mainVbox.PackStart(mb, false, false, 0);
-
             // Check Boxes
             CheckButton shiftCheck = new CheckButton("Shift");
             CheckButton altCheck = new CheckButton("AltGr");
             shiftCheck.Toggled += OnShiftToggled;
             altCheck.Toggled += OnAltToggled;
 
+            checkboxes.PackStart(shiftCheck, false, false, 0);
+            checkboxes.PackStart(altCheck, false, false, 0);
+
             CreateButtonLayout();
             UpdateKeyLabels();
 
-            // Keyboard Layout
-            mainVbox.PackStart(rowBox1, false, false, 0);
-            mainVbox.PackStart(rowBox2, false, false, 0);
-            mainVbox.PackStart(rowBox3, false, false, 0);
-            mainVbox.PackStart(rowBox4, false, false, 0);
-            mainVbox.PackStart(rowBox5, false, false, 0);
-            mainVbox.PackStart(shiftCheck, false, false, 0);
-            mainVbox.PackStart(altCheck, false, false, 0);
-
-            // Bottom Box for Language Selection and Path Entry
             Box bottomHbox = new Box(Orientation.Horizontal, 5);
 
-
             Label pathLabel = new Label("No symbols path selected. Default: ");
+
+            if (Directory.Exists(symbolsPath))
+            {
+                pathLabel.Text = "Path to xkb symbols: ";
+            }
 
             Entry pathEntry = new Entry();
             pathEntry.Sensitive = false;
@@ -122,15 +119,23 @@ namespace LayoutMaker
             Button pathButton = new Button("Select Path");
             pathButton.Clicked += (sender, e) => OpenDirectoryChooser(pathLabel, pathEntry);
 
-            languageComboBox.Append("us", "US");
-            languageComboBox.Append("de", "DE");
-            languageComboBox.Active = 0; // Set default to "us"
+            languageComboBox.Active = 0;
+            languageComboBox.Sensitive = false;
+
+            PopulateComboBox(symbolsPath);
 
             bottomHbox.PackStart(pathLabel, false, false, 0);
             bottomHbox.PackStart(pathEntry, true, true, 0);
             bottomHbox.PackStart(pathButton, false, false, 0);
             bottomHbox.PackStart(languageComboBox, false, false, 0);
 
+            mainVbox.PackStart(mb, false, false, 0);
+            mainVbox.PackStart(rowBox1, false, false, 0);
+            mainVbox.PackStart(rowBox2, false, false, 0);
+            mainVbox.PackStart(rowBox3, false, false, 0);
+            mainVbox.PackStart(rowBox4, false, false, 0);
+            mainVbox.PackStart(rowBox5, false, false, 0);
+            mainVbox.PackStart(checkboxes, false, false, 0);
             mainVbox.PackStart(bottomHbox, false, false, 0);
 
             Add(mainVbox);
@@ -152,9 +157,41 @@ namespace LayoutMaker
                 pathLabel.Text = "Path to xkb symbols: ";
                 symbolsPath = selectedPath;
                 entry.Text = selectedPath;
+                PopulateComboBox(selectedPath);
             }
 
+
             dirChooser.Destroy();
+        }
+
+        private void PopulateComboBox(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                Console.WriteLine("Directory does not exist.");
+                return;
+            }
+
+            if(!directoryPath.EndsWith("symbols"))
+            {
+                return;
+            }
+
+            List<string> fileNames = Directory.GetFiles(directoryPath).Select(System.IO.Path.GetFileName).ToList();
+
+            fileNames = fileNames.Where(x => x.Length <= 3).OrderBy(x => x).ToList();
+
+            int usIndex = fileNames.IndexOf("us");
+
+            foreach(var fileName in fileNames)
+            {
+                Console.WriteLine(fileName);
+                string view = fileName.ToUpper();
+                languageComboBox.Append(fileName, view);
+            }
+
+            languageComboBox.Sensitive = true;
+            languageComboBox.Active = usIndex;
         }
 
         private void Exit(object sender, DeleteEventArgs a)
@@ -264,17 +301,12 @@ namespace LayoutMaker
 
             Box vbox = new Box(Orientation.Vertical, 5);
 
-            Label languageLabel = new Label("Language Code [us, ru, de]:");
-            Entry languageEntry = new Entry();
-
             Label variantLabel = new Label("Variant's Code [Shavian -> shvn]:");
             Entry variantEntry = new Entry();
 
             Label layoutNameLabel = new Label("Layout Description [English (Shavian)]:");
             Entry layoutNameEntry = new Entry();
 
-            vbox.PackStart(languageLabel, false, false, 0);
-            vbox.PackStart(languageEntry, false, false, 5);
             vbox.PackStart(variantLabel, false, false, 0);
             vbox.PackStart(variantEntry, false, false, 5);
             vbox.PackStart(layoutNameLabel, false, false, 0);
@@ -285,12 +317,11 @@ namespace LayoutMaker
 
             if (exportDialog.Run() == (int)ResponseType.Accept)
             {
-                string languageCode = languageEntry.Text;
                 string variantCode = variantEntry.Text;
                 string layoutName = layoutNameEntry.Text;
 
                 LayoutGenerator lg = new LayoutGenerator();
-                lg.Generate(lb.Keys, languageCode, variantCode, layoutName);
+                lg.Generate(lb.Keys, languageComboBox.ActiveText.ToLower(), variantCode, layoutName);
             }
 
             exportDialog.Destroy();
@@ -382,7 +413,7 @@ namespace LayoutMaker
                         }
                         else if(label == "NoSymbol")
                         {
-                            b.Label = "[]";
+                            b.Label = "";
                         }
                         else
                         {
