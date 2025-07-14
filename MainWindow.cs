@@ -147,21 +147,24 @@ namespace LayoutMaker
             loadDialog.Destroy();
         }
 
-        private void SaveFile(object sender, EventArgs a)
+        private void SaveFile()
         {
             if(filePath == string.Empty)
             {
-                SaveFileAs(sender, a);
+                SaveFileAs();
                 return;
             }
 
             string fileText = CreateKlcFile();
             System.IO.File.WriteAllText(filePath, fileText);
-            return;
-
         }
 
-        private void SaveFileAs(object sender, EventArgs a)
+        private void SaveFile(object sender, EventArgs a)
+        {
+            SaveFile();
+        }
+
+        private void SaveFileAs()
         {
             FileChooserDialog saveDialog = new FileChooserDialog("Save file as...",
                     this,
@@ -195,10 +198,17 @@ namespace LayoutMaker
             }
 
             saveDialog.Destroy();
+
+        }
+
+        private void SaveFileAs(object sender, EventArgs a)
+        {
+            SaveFileAs();
         }
 
         private void ExportFile(object sender, EventArgs a)
         {
+            SaveFile();
             // TODO: Generate dialog that says "The program will generate .xkb and .xml file now"
             LayoutGenerator lg = new LayoutGenerator();
             lg.Generate(lb.Keys, "us", "shvn");

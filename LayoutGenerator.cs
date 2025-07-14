@@ -6,6 +6,8 @@ class LayoutGenerator
 {
     public void Generate(List<Key> keys, string lang, string variantName)
     {
+        bool altGr = false;
+
         StreamWriter sw = new StreamWriter($"{lang}_{variantName}");
 
         sw.WriteLine("default partial alphanumeric_keys modifier_keys");
@@ -14,10 +16,14 @@ class LayoutGenerator
 
         foreach(var key in keys)
         {
+            if(key.Alt != "NoSymbol" || key.ShiftAlt != "NoSymbol")
+            {
+                altGr = true;
+            }
+
             string strKey = XkbKeys[key.KeyCode];
             string utf32str = string.Empty;
             sw.Write($"  key <{strKey}> {{ [ ");
-
 
             List<string> strKeys = new List<string>()
             {
@@ -47,9 +53,13 @@ class LayoutGenerator
 
             sw.Write(string.Join(", ", strKeys.ToArray()));
 
-
             sw.Write(" ] };");
             sw.WriteLine($" // {key.ToString()}\t{key.KeyCode}");
+        }
+
+        if(altGr)
+        {
+            sw.WriteLine("\n  include \"level3(ralt_switch)\"");
         }
 
         sw.WriteLine("};");
@@ -106,8 +116,8 @@ class LayoutGenerator
         { KeyCode.KeyB,            "AB05" },
         { KeyCode.KeyN,            "AB06" },
         { KeyCode.KeyM,            "AB07" },
-        { KeyCode.KeyPeriod,       "AB08" },
-        { KeyCode.KeyComma,        "AB09" },
+        { KeyCode.KeyComma,        "AB08" },
+        { KeyCode.KeyPeriod,       "AB09" },
         { KeyCode.KeySlash,        "AB10" },
         { KeyCode.KeySpace,        "SPCE" }
     };
