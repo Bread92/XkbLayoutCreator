@@ -9,9 +9,7 @@
 */
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using Gtk;
@@ -20,15 +18,14 @@ namespace LayoutMaker
 {
     class MainWindow : Window
     {
-        private string preferredCharacter = string.Empty;
         private string filePath = string.Empty;
 
-        public List<List<Button>> buttons = new List<List<Button>>();
-        public List<Button> Row1 = new List<Button>();
-        public List<Button> Row2 = new List<Button>();
-        public List<Button> Row3 = new List<Button>();
-        public List<Button> Row4 = new List<Button>();
-        public List<Button> Row5 = new List<Button>();
+        public List<List<Button>> buttons = new();
+        public List<Button> Row1 = new();
+        public List<Button> Row2 = new();
+        public List<Button> Row3 = new();
+        public List<Button> Row4 = new();
+        public List<Button> Row5 = new();
 
         private const int Row1Length = 13;
         private const int Row2Length = 13;
@@ -36,15 +33,15 @@ namespace LayoutMaker
         private const int Row4Length = 10;
         private const int Row5Length = 1;
 
-        public Box mainVbox = new Box(Orientation.Vertical, 2);
-        public Box rowBox1 = new Box(Orientation.Horizontal, 2);
-        public Box rowBox2 = new Box(Orientation.Horizontal, 2);
-        public Box rowBox3 = new Box(Orientation.Horizontal, 2);
-        public Box rowBox4 = new Box(Orientation.Horizontal, 2);
-        public Box rowBox5 = new Box(Orientation.Horizontal, 2);
-        public Box checkboxes = new Box(Orientation.Horizontal, 2);
+        public Box mainVbox = new(Orientation.Vertical, 2);
+        public Box rowBox1 = new(Orientation.Horizontal, 2);
+        public Box rowBox2 = new(Orientation.Horizontal, 2);
+        public Box rowBox3 = new(Orientation.Horizontal, 2);
+        public Box rowBox4 = new(Orientation.Horizontal, 2);
+        public Box rowBox5 = new(Orientation.Horizontal, 2);
+        public Box checkboxes = new(Orientation.Horizontal, 2);
 
-        private LayoutBuilder lb = new LayoutBuilder();
+        public LayoutBuilder lb = new();
 
         public MainWindow() : base("Xkb Layout Creator")
         {
@@ -57,24 +54,27 @@ namespace LayoutMaker
             buttons.Add(Row4);
             buttons.Add(Row5);
 
-            MenuBar mb = new MenuBar();
+            MenuBar mb = new();
 
-            Menu filemenu = new Menu();
-            MenuItem file = new MenuItem("File");
+            Menu filemenu = new();
+            MenuItem file = new("File");
             file.Submenu = filemenu;
 
-            MenuItem save = new MenuItem("Save");
-            MenuItem saveAs = new MenuItem("Save As");
-            MenuItem export = new MenuItem("Export");
-            MenuItem load = new MenuItem("Load");
-            MenuItem exit = new MenuItem("Exit");
+            MenuItem reset = new("New");
+            MenuItem save = new("Save");
+            MenuItem saveAs = new("Save As");
+            MenuItem export = new("Export");
+            MenuItem load = new("Load");
+            MenuItem exit = new("Exit");
 
+            reset.Activated += Reset;
             save.Activated += SaveFile;
             saveAs.Activated += SaveFileAs;
             export.Activated += ExportFile;
             load.Activated += LoadFile;
             exit.Activated += ExitMenu;
 
+            filemenu.Append(reset);
             filemenu.Append(save);
             filemenu.Append(saveAs);
             filemenu.Append(export);
@@ -83,9 +83,8 @@ namespace LayoutMaker
 
             mb.Append(file);
 
-            // Check Boxes
-            CheckButton shiftCheck = new CheckButton("Shift");
-            CheckButton altCheck = new CheckButton("AltGr");
+            CheckButton shiftCheck = new("Shift");
+            CheckButton altCheck = new("AltGr");
             shiftCheck.Toggled += OnShiftToggled;
             altCheck.Toggled += OnAltToggled;
 
@@ -93,7 +92,6 @@ namespace LayoutMaker
             checkboxes.PackStart(altCheck, false, false, 0);
 
             CreateButtonLayout();
-
             UpdateKeyLabels();
 
             mainVbox.PackStart(mb, false, false, 0);
@@ -109,25 +107,27 @@ namespace LayoutMaker
             DeleteEvent += Exit;
         }
 
-        private void Exit(object sender, DeleteEventArgs a)
-        {
-            Application.Quit();
-        }
+        private void Exit(object sender, DeleteEventArgs a) => Application.Quit();
 
-        private void ExitMenu(object sender, EventArgs a)
+        private void ExitMenu(object sender, EventArgs a) => Application.Quit();
+
+        private void Reset(object sender, EventArgs a)
         {
-            Application.Quit();
+            lb = new LayoutBuilder();
+
+            filePath = string.Empty;
+            UpdateKeyLabels();
         }
 
         private void LoadFile(object sender, EventArgs a)
         {
-            FileChooserDialog loadDialog = new FileChooserDialog("Select a file to load",
+            FileChooserDialog loadDialog = new("Select a file to load",
                     this,
                     FileChooserAction.Open,
                     "Cancel", ResponseType.Cancel,
                     "Open", ResponseType.Accept);
 
-            FileFilter filter = new FileFilter();
+            FileFilter filter = new();
             filter.Name = "KLC files";
             filter.AddPattern("*.klc");
             loadDialog.AddFilter(filter);
@@ -163,13 +163,13 @@ namespace LayoutMaker
 
         private void SaveFileAs()
         {
-            FileChooserDialog saveDialog = new FileChooserDialog("Save file as...",
+            FileChooserDialog saveDialog = new("Save file as...",
                     this,
                     FileChooserAction.Save,
                     "Cancel", ResponseType.Cancel,
                     "Save", ResponseType.Accept);
 
-            FileFilter filter = new FileFilter();
+            FileFilter filter = new();
             filter.Name = "KLC files";
             filter.AddPattern("*.klc");
             saveDialog.AddFilter(filter);
@@ -197,10 +197,7 @@ namespace LayoutMaker
             saveDialog.Destroy();
         }
 
-        private void SaveFileAs(object sender, EventArgs a)
-        {
-            SaveFileAs();
-        }
+        private void SaveFileAs(object sender, EventArgs a) => SaveFileAs();
 
         private void ExportFile(object sender, EventArgs a)
         {
@@ -211,20 +208,20 @@ namespace LayoutMaker
 
         private void ShowExportDialog()
         {
-            Dialog exportDialog = new Dialog("Export Layout", this, DialogFlags.Modal);
+            Dialog exportDialog = new("Export Layout", this, DialogFlags.Modal);
             exportDialog.AddButton("Cancel", ResponseType.Cancel);
             exportDialog.AddButton("OK", ResponseType.Accept);
 
-            Box vbox = new Box(Orientation.Vertical, 5);
+            Box vbox = new(Orientation.Vertical, 5);
 
-            Label langLabel = new Label("Language Code [us, ru, de, cz]:");
-            Entry langEntry = new Entry();
+            Label langLabel = new("Language Code [us, ru, de, cz]:");
+            Entry langEntry = new();
 
-            Label variantLabel = new Label("Your variant's Code [Shavian -> shvn]:");
-            Entry variantEntry = new Entry();
+            Label variantLabel = new("Your variant's Code [Shavian -> shvn]:");
+            Entry variantEntry = new();
 
-            Label layoutDescLabel = new Label("Short description [English (Shavian)]:");
-            Entry layoutDescEntry = new Entry();
+            Label layoutDescLabel = new("Short description [English (Shavian)]:");
+            Entry layoutDescEntry = new();
 
             vbox.PackStart(langLabel, false, false, 0);
             vbox.PackStart(langEntry, false, false, 5);
@@ -250,32 +247,15 @@ namespace LayoutMaker
                             string.IsNullOrWhiteSpace(variantCode) || 
                             string.IsNullOrWhiteSpace(layoutDesc))
                     {
-                        MessageDialog warningDialog = new MessageDialog(
-                                this,
-                                DialogFlags.Modal,
-                                MessageType.Warning,
-                                ButtonsType.Ok,
-                                "One of the fields is empty!"
-                                );
-                        warningDialog.Run();
-
-                        warningDialog.Destroy();
+                        ShowDialog(MessageType.Warning, "One of the fields is empty!");
                         continue;
                     }
 
                     validInput = true;
-                    LayoutGenerator lg = new LayoutGenerator();
+                    LayoutGenerator lg = new();
                     lg.Generate(lb.Keys, lang, variantCode, layoutDesc);
 
-                    MessageDialog infoDialog = new MessageDialog(
-                            this,
-                            DialogFlags.Modal,
-                            MessageType.Info,
-                            ButtonsType.Ok,
-                            "Files generated successfully!\nProceed to readme file for further instructions"
-                            );
-                    infoDialog.Run();
-                    infoDialog.Destroy();
+                    ShowDialog(MessageType.Info, "Files generated successfully!\nProceed to readme file for further instructions");
                 }
             }
 
@@ -300,17 +280,19 @@ namespace LayoutMaker
         {
             var button = sender as Button;
             KeyCode keyCode = lb.GetKeyCodeByIndex(int.Parse(button.Name));
-            Dialog inputDialog = new Dialog(keyCode.ToString(), this, DialogFlags.Modal);
+            Dialog inputDialog = new(keyCode.ToString(), this, DialogFlags.Modal);
             inputDialog.AddButton("Cancel", ResponseType.Cancel);
             inputDialog.AddButton("OK", ResponseType.Accept);
 
-            Label charLabel = new Label("New character or unicode value (U####):");
-            Entry entry = new Entry();
+            Label charLabel = new("New character or unicode value (U####):");
+            Entry entry = new();
             inputDialog.ContentArea.PackStart(charLabel, false, false, 5);
             inputDialog.ContentArea.PackStart(entry, false, false, 5);
             inputDialog.ShowAll();
 
             bool validInput = false;
+
+            string preferredCharacter = string.Empty;
 
             while (!validInput)
             {
@@ -336,14 +318,7 @@ namespace LayoutMaker
                         }
                         else
                         {
-                            var warningDialog = new MessageDialog(
-                                    this,
-                                    DialogFlags.Modal,
-                                    MessageType.Warning,
-                                    ButtonsType.Ok,
-                                    "Invalid Unicode codepoint");
-                            warningDialog.Run();
-                            warningDialog.Destroy();
+                            ShowDialog(MessageType.Warning, "Invalid Unicode codepoint.");
                         }
                     }
                     else if (userInput.Length == 1)
@@ -354,15 +329,7 @@ namespace LayoutMaker
                     }
                     else
                     {
-                        var warningDialog = new MessageDialog(
-                                this,
-                                DialogFlags.Modal,
-                                MessageType.Warning,
-                                ButtonsType.Ok,
-                                "Please enter exactly one character or a valid unicode codepoint (U#####).");
-                        warningDialog.Run();
-                        warningDialog.Destroy();
-
+                        ShowDialog(MessageType.Warning, "Please enter exactly one character or a valid unicode codepoint (U#####).");
                         entry.Text = string.Empty;
                     }
                 }
@@ -377,6 +344,18 @@ namespace LayoutMaker
             inputDialog.Destroy();
         }
 
+        private void ShowDialog(MessageType type, string text)
+        {
+            var dialog = new MessageDialog(this,
+                    DialogFlags.Modal,
+                    type,
+                    ButtonsType.Ok,
+                    text);
+            dialog.Run();
+            dialog.Destroy();
+
+        }
+
         private string ConvertUnicodeInput(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -389,21 +368,15 @@ namespace LayoutMaker
             else if (input.StartsWith("U"))
                 input = input.Substring(1);
             else
-                return input; // Not a unicode codepoint, return as is.
+                return input;
 
             if (int.TryParse(input, System.Globalization.NumberStyles.HexNumber, null, out int codepoint))
             {
-                try
-                {
-                    return char.ConvertFromUtf32(codepoint);
-                }
-                catch
-                {
-                    return "?"; // Invalid codepoint, could throw out of range.
-                }
+                try { return char.ConvertFromUtf32(codepoint); }
+                catch { return "?"; }
             }
 
-            return "?"; // Failed to parse.
+            return "?";
         }
 
         private void UpdateKeyLabels()
@@ -416,20 +389,14 @@ namespace LayoutMaker
                 {
                     if(b.Sensitive)
                     {
-                        string label = GetKeyLabel(lb, keyIndex);
+                        string label = GetKeyLabel(keyIndex);
 
                         if(label == " ")
-                        {
                             b.Label = "[Space]";
-                        }
                         else if(label == "NoSymbol")
-                        {
                             b.Label = "";
-                        }
                         else
-                        {
                             b.Label = label;
-                        }
 
                         keyIndex++;
                     }
@@ -440,135 +407,35 @@ namespace LayoutMaker
         private void CreateButtonLayout()
         {
             int keyIndex = 0;
-            string keyLabel = "*";
 
-           for(int i = 0; i < Row1Length; i++)
-           {
-               keyLabel = GetKeyLabel(lb, keyIndex);
+           AddActiveButtons(ref keyIndex, Row1Length, Row1, rowBox1);
 
-               if (keyLabel != "NoSymbol")
-               {
-                   Button newButton = new Button(keyLabel);
-                   newButton.Name = keyIndex.ToString();
-                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
+           AddInactiveButton("BackSpace", Row1, rowBox1);
+           AddInactiveButton("Tab", Row2, rowBox2);
 
-                   rowBox1.PackStart(newButton, false, false, 0);
-                   Row1.Add(newButton);
-               }
+           AddActiveButtons(ref keyIndex, Row2Length, Row2, rowBox2);
 
-               keyIndex++;
+           AddInactiveButton("Caps", Row3, rowBox3);
 
-           }
+           AddActiveButtons(ref keyIndex, Row3Length, Row3, rowBox3);
 
-           // BackSpace Key
-           Button backspace = new Button("BackSpace");
-           backspace.Sensitive = false;
-           rowBox1.PackStart(backspace, false, false, 0);
-           Row1.Add(backspace);
+           AddInactiveButton("Enter", Row3, rowBox3);
+           AddInactiveButton("LShift", Row4, rowBox4);
 
-           // Tab
-           Button tab = new Button("Tab");
-           tab.Sensitive = false;
-           rowBox2.PackStart(tab, false, false, 0);
-           Row2.Add(tab);
+           AddActiveButtons(ref keyIndex, Row4Length, Row4, rowBox4);
 
-           for(int i = 0; i < Row2Length; i++)
-           {
-               keyLabel = GetKeyLabel(lb, keyIndex);
-
-               if (keyLabel != "NoSymbol")
-               {
-                   Button newButton = new Button(keyLabel);
-                   newButton.Name = keyIndex.ToString();
-                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
-
-                   rowBox2.PackStart(newButton, false, false, 0);
-                   Row2.Add(newButton);
-               }
-
-               keyIndex++;
-           }
-
-           // CapsLock
-           Button capsLock = new Button("Caps");
-           capsLock.Sensitive = false;
-           rowBox3.PackStart(capsLock, false, false, 0);
-           Row3.Add(capsLock);
-
-           for(int i = 0; i < Row3Length; i++)
-           {
-               keyLabel = GetKeyLabel(lb, keyIndex);
-
-               if (keyLabel != "NoSymbol")
-               {
-                   Button newButton = new Button(keyLabel);
-                   newButton.Name = keyIndex.ToString();
-                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
-
-                   rowBox3.PackStart(newButton, false, false, 0);
-                   Row3.Add(newButton);
-               }
-
-               keyIndex++;
-           }
-
-           // Enter
-           Button enter = new Button("Enter");
-           enter.Sensitive = false;
-           rowBox3.PackStart(enter, false, false, 0);
-           Row3.Add(enter);
-
-           // LShift
-           Button lShift = new Button("LShift");
-           lShift.Sensitive = false;
-           rowBox4.PackStart(lShift, false, false, 0);
-           Row4.Add(lShift);
-
-           for(int i = 0; i < Row4Length; i++)
-           {
-               keyLabel = GetKeyLabel(lb, keyIndex);
-
-               if (keyLabel != "NoSymbol")
-               {
-                   Button newButton = new Button(keyLabel);
-                   newButton.Name = keyIndex.ToString();
-                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
-
-                   rowBox4.PackStart(newButton, false, false, 0);
-                   Row4.Add(newButton);
-               }
-
-               keyIndex++;
-           }
-
-           // Enter
-           Button rShift = new Button("RShift");
-           rShift.Sensitive = false;
-           rowBox4.PackStart(rShift, false, false, 0);
-           Row4.Add(rShift);
-
-           Button lCtrl = new Button("Ctrl");
-           lCtrl.Sensitive = false;
-           rowBox5.PackStart(lCtrl, false, false, 0);
-           Row5.Add(lCtrl);
-
-           Button super = new Button("X");
-           super.Sensitive = false;
-           rowBox5.PackStart(super, false, false, 0);
-           Row5.Add(super);
-
-           Button lAlt = new Button("Alt");
-           lAlt.Sensitive = false;
-           rowBox5.PackStart(lAlt, false, false, 0);
-           Row5.Add(lAlt);
+           AddInactiveButton("RShift", Row4, rowBox4);
+           AddInactiveButton("Ctrl", Row5, rowBox5);
+           AddInactiveButton("X", Row5, rowBox5);
+           AddInactiveButton("Alt", Row5, rowBox5);
 
            for(int i = 0; i < Row5Length; i++)
            {
-               keyLabel = GetKeyLabel(lb, keyIndex);
+               string keyLabel = GetKeyLabel(keyIndex);
 
                if (keyLabel != "NoSymbol")
                {
-                   Button newButton = new Button(keyLabel);
+                   Button newButton = new(keyLabel);
                    newButton.Name = keyIndex.ToString();
                    newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
 
@@ -578,43 +445,48 @@ namespace LayoutMaker
                    rowBox5.PackStart(newButton, false, false, 0);
                    Row5.Add(newButton);
                }
+           }
+
+           AddInactiveButton("Alt", Row5, rowBox5);
+           AddInactiveButton("Ctrl", Row5, rowBox5);
+        }
+
+        private void AddInactiveButton(string name, List<Button> buttons, Box rowBox)
+        {
+           Button button = new(name);
+           button.Sensitive = false;
+           rowBox.PackStart(button, false, false, 0);
+           buttons.Add(button);
+        }
+
+        private void AddActiveButtons(ref int keyIndex, int rowLength, List<Button> buttons, Box rowBox)
+        {
+           for(int i = 0; i < rowLength; i++)
+           {
+               string keyLabel = GetKeyLabel(keyIndex);
+
+               if (keyLabel != "NoSymbol")
+               {
+                   Button newButton = new(keyLabel);
+                   newButton.Name = keyIndex.ToString();
+                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
+
+                   rowBox.PackStart(newButton, false, false, 0);
+                   buttons.Add(newButton);
+               }
 
                keyIndex++;
            }
 
-           Button rAlt = new Button("Alt");
-           rAlt.Sensitive = false;
-           rowBox5.PackStart(rAlt, false, false, 0);
-           Row5.Add(rAlt);
-
-           Button rCtrl = new Button("Ctrl");
-           rCtrl.Sensitive = false;
-           rowBox5.PackStart(rCtrl, false, false, 0);
-           Row5.Add(rCtrl);
         }
 
-        private string GetKeyLabel(LayoutBuilder lb, int index)
+        private string GetKeyLabel(int index)
         {
-            if(!lb.IsShift && !lb.IsAlt)
-            {
-                return lb.Keys[index].Normal;
-            }
-            else if(lb.IsShift && !lb.IsAlt)
-            {
-                return lb.Keys[index].Shift;
-            }
-            else if(!lb.IsShift && lb.IsAlt)
-            {
-                return lb.Keys[index].Alt;
-            }
-            else if(lb.IsShift && lb.IsAlt)
-            {
-                return lb.Keys[index].ShiftAlt;
-            }
-            else
-            {
-                return "[]";
-            }
+            if(!lb.IsShift && !lb.IsAlt)     return lb.Keys[index].Normal;
+            else if(lb.IsShift && !lb.IsAlt) return lb.Keys[index].Shift;
+            else if(!lb.IsShift && lb.IsAlt) return lb.Keys[index].Alt;
+            else if(lb.IsShift && lb.IsAlt)  return lb.Keys[index].ShiftAlt;
+            else                             return "[]";
         }
 
         private string CreateKlcFile()
@@ -622,9 +494,7 @@ namespace LayoutMaker
             StringBuilder sb = new();
 
             foreach(var key in lb.Keys)
-            {
                 sb.AppendLine(key.ToKlcString());
-            }
 
             return sb.ToString();
         }

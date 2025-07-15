@@ -1,4 +1,4 @@
-### Linux Keyboard Layout Creator
+### Xkb Keyboard Layout Creator
 This is a simple UI application that generates .xkb and .xml snippets for you to manually copy into the corresponding system files. This program does not modify your system files.
 
 #### How to use

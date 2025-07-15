@@ -27,65 +27,15 @@ class LayoutBuilder
     {
         var index = Keys.FindIndex(x => x.KeyCode == keyCode);
 
-        if(!IsShift && !IsAlt)
-        {
-            Keys[index].Normal = value;
-        }
-        else if(IsShift && !IsAlt)
-        {
-            Keys[index].Shift = value;
-        }
-        else if(!IsShift && IsAlt)
-        {
-            Keys[index].Alt = value;
-        }
-        else if(IsShift && IsAlt)
-        {
-            Keys[index].ShiftAlt = value;
-        }
+        if(!IsShift && !IsAlt) Keys[index].Normal = value;
+        else if(IsShift && !IsAlt) Keys[index].Shift = value;
+        else if(!IsShift && IsAlt) Keys[index].Alt = value;
+        else if(IsShift && IsAlt) Keys[index].ShiftAlt = value;
     }
 
-    public KeyCode GetKeyCodeByIndex(int index)
-    {
-        return Keys[index].KeyCode;
-    }
+    public KeyCode GetKeyCodeByIndex(int index) => Keys[index].KeyCode;
 
-    public void SetKeyByIndex(int index, string value)
-    {
-        if(!IsShift && !IsAlt)
-        {
-            Keys[index].Normal = value;
-        }
-        else if(IsShift && !IsAlt)
-        {
-            Keys[index].Shift = value;
-        }
-        else if(!IsShift && IsAlt)
-        {
-            Keys[index].Alt = value;
-        }
-        else if(IsShift && IsAlt)
-        {
-            Keys[index].ShiftAlt = value;
-        }
-    }
-
-    public void SetKey(string strKeyCode, string value)
-    {
-        KeyCode keyCode = KeyMap[strKeyCode];
-
-        var index = Keys.FindIndex(x => x.KeyCode == keyCode);
-
-        if(!IsShift && !IsAlt)
-        {
-            Keys[index].Normal = value;
-        }
-    }
-
-    public KeyCode GetKeyCode(string keyCode)
-    {
-        return KeyMap[keyCode];
-    }
+    public KeyCode GetKeyCode(string keyCode) => KeyMap[keyCode];
 
     public void LoadLayout(string filepath)
     {
@@ -126,66 +76,64 @@ class LayoutBuilder
         StreamWriter sw = new(filepath);
 
         foreach(var key in Keys)
-        {
             sw.WriteLine(key.ToString());
-        }
 
         sw.Close();
     }
 
-    private static readonly string[][] DefaultLayout = new string[][]
+    private static readonly string[][] DefaultLayout =
     {
-        new string[] { "`", "~" },
-        new string[] { "1", "!" },
-        new string[] { "2", "@" },
-        new string[] { "3", "#" },
-        new string[] { "4", "$" },
-        new string[] { "5", "%" },
-        new string[] { "6", "^" },
-        new string[] { "7", "&" },
-        new string[] { "8", "*" },
-        new string[] { "9", "(" },
-        new string[] { "0", ")" },
-        new string[] { "-", "_" },
-        new string[] { "=", "+" },
-        new string[] { "q", "Q" },
-        new string[] { "w", "W" },
-        new string[] { "e", "E" },
-        new string[] { "r", "R" },
-        new string[] { "t", "T" },
-        new string[] { "y", "Y" },
-        new string[] { "u", "U" },
-        new string[] { "i", "I" },
-        new string[] { "o", "O" },
-        new string[] { "p", "P" },
-        new string[] { "[", "{" },
-        new string[] { "]", "}" },
-        new string[] { "\\", "|" },
-        new string[] { "a", "A" },
-        new string[] { "s", "S" },
-        new string[] { "d", "D" },
-        new string[] { "f", "F" },
-        new string[] { "g", "G" },
-        new string[] { "h", "H" },
-        new string[] { "j", "J" },
-        new string[] { "k", "K" },
-        new string[] { "l", "L" },
-        new string[] { ";", ":" },
-        new string[] { "'", "\"" },
-        new string[] { "z", "Z" },
-        new string[] { "x", "X" },
-        new string[] { "c", "C" },
-        new string[] { "v", "V" },
-        new string[] { "b", "B" },
-        new string[] { "n", "N" },
-        new string[] { "m", "M" },
-        new string[] { ",", "<" },
-        new string[] { ".", ">" },
-        new string[] { "/", "?" },
-        new string[] { " ", " " },
+        new[] { "`", "~" },
+        new[] { "1", "!" },
+        new[] { "2", "@" },
+        new[] { "3", "#" },
+        new[] { "4", "$" },
+        new[] { "5", "%" },
+        new[] { "6", "^" },
+        new[] { "7", "&" },
+        new[] { "8", "*" },
+        new[] { "9", "(" },
+        new[] { "0", ")" },
+        new[] { "-", "_" },
+        new[] { "=", "+" },
+        new[] { "q", "Q" },
+        new[] { "w", "W" },
+        new[] { "e", "E" },
+        new[] { "r", "R" },
+        new[] { "t", "T" },
+        new[] { "y", "Y" },
+        new[] { "u", "U" },
+        new[] { "i", "I" },
+        new[] { "o", "O" },
+        new[] { "p", "P" },
+        new[] { "[", "{" },
+        new[] { "]", "}" },
+        new[] { "\\", "|" },
+        new[] { "a", "A" },
+        new[] { "s", "S" },
+        new[] { "d", "D" },
+        new[] { "f", "F" },
+        new[] { "g", "G" },
+        new[] { "h", "H" },
+        new[] { "j", "J" },
+        new[] { "k", "K" },
+        new[] { "l", "L" },
+        new[] { ";", ":" },
+        new[] { "'", "\"" },
+        new[] { "z", "Z" },
+        new[] { "x", "X" },
+        new[] { "c", "C" },
+        new[] { "v", "V" },
+        new[] { "b", "B" },
+        new[] { "n", "N" },
+        new[] { "m", "M" },
+        new[] { ",", "<" },
+        new[] { ".", ">" },
+        new[] { "/", "?" },
+        new[] { " ", " " },
     };
 
-    Dictionary<string, KeyCode> KeyMap = new Dictionary<string, KeyCode>
+    Dictionary<string, KeyCode> KeyMap = new() 
     {
         { "`", KeyCode.KeyBacktick },
         { "1", KeyCode.Key1 },

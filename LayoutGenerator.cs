@@ -5,7 +5,6 @@ using System;
 
 class LayoutGenerator
 {
-
     public void Generate(List<Key> keys, string lang, string variantName, string shortDesc)
     {
         GenerateXkb(keys, lang, variantName);
@@ -17,7 +16,7 @@ class LayoutGenerator
         bool altGr = false;
         string fileName = $"{lang}_{variantName}.xkb";
 
-        StreamWriter sw = new StreamWriter(fileName);
+        StreamWriter sw = new(fileName);
 
         sw.WriteLine("default partial alphanumeric_keys modifier_keys");
         sw.WriteLine($"xkb_symbols \"{lang}_{variantName}\" {{");
@@ -26,15 +25,13 @@ class LayoutGenerator
         foreach(var key in keys)
         {
             if(key.Alt != "NoSymbol" || key.ShiftAlt != "NoSymbol")
-            {
                 altGr = true;
-            }
 
             string strKey = XkbKeys[key.KeyCode];
             string utf32str = string.Empty;
             sw.Write($"  key <{strKey}> {{ [ ");
 
-            List<string> strKeys = new List<string>()
+            List<string> strKeys = new()
             {
                 key.Normal,
                 key.Shift,
@@ -42,13 +39,9 @@ class LayoutGenerator
                 key.ShiftAlt
             };
 
-            // Remove trailing NoSymbols
-            while(strKeys[strKeys.Count - 1] == "NoSymbol")
-            {
+            while(strKeys[^1] == "NoSymbol")
                 strKeys.RemoveAt(strKeys.Count - 1);
-            }
 
-            // Turn symbols into hex form
             for(int i = 0; i < strKeys.Count; i++)
             {
                 if(strKeys[i] != "NoSymbol")
@@ -61,15 +54,12 @@ class LayoutGenerator
             }
 
             sw.Write(string.Join(", ", strKeys.ToArray()));
-
             sw.Write(" ] };");
             sw.WriteLine($" // {key.ToString()}\t{key.KeyCode}");
         }
 
         if(altGr)
-        {
             sw.WriteLine("\n  include \"level3(ralt_switch)\"");
-        }
 
         sw.WriteLine("};");
 
@@ -82,7 +72,7 @@ class LayoutGenerator
     {
         string fileName = $"{lang}_{variantName}.xml";
 
-        StreamWriter sw = new StreamWriter(fileName);
+        StreamWriter sw = new(fileName);
 
         sw.WriteLine("<variant>");
         sw.WriteLine("  <configItem>");
@@ -96,7 +86,7 @@ class LayoutGenerator
         Console.WriteLine($"Generated file {fileName}"); 
     }
 
-    private Dictionary<KeyCode, string> XkbKeys = new Dictionary<KeyCode, string>()
+    private Dictionary<KeyCode, string> XkbKeys = new()
     {
         { KeyCode.KeyBacktick,     "TLDE" },
         { KeyCode.Key1,            "AE01" },
@@ -153,7 +143,7 @@ class LayoutGenerator
 
     private string GetUtf32String(string str)
     {
-        StringInfo stringInfo = new StringInfo(str);
+        StringInfo stringInfo = new(str);
         int utf = 0;
 
         for (int i = 0; i < stringInfo.LengthInTextElements; i++)
