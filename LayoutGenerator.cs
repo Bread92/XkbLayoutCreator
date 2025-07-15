@@ -7,11 +7,11 @@ class LayoutGenerator
 {
     public void Generate(List<Key> keys, string lang, string variantName, string shortDesc)
     {
-        GenerateXkb(keys, lang, variantName);
+        GenerateXkb(keys, lang, variantName, shortDesc);
         GenerateXml(lang, variantName, shortDesc);
     }
 
-    public void GenerateXkb(List<Key> keys, string lang, string variantName)
+    public void GenerateXkb(List<Key> keys, string lang, string variantName, string shortDesc)
     {
         bool altGr = false;
         string fileName = $"{lang}_{variantName}.xkb";
@@ -19,8 +19,8 @@ class LayoutGenerator
         StreamWriter sw = new(fileName);
 
         sw.WriteLine("default partial alphanumeric_keys modifier_keys");
-        sw.WriteLine($"xkb_symbols \"{lang}_{variantName}\" {{");
-        sw.WriteLine($"  Name[Group1] = \"{lang}\";");
+        sw.WriteLine($"xkb_symbols \"{variantName}\" {{");
+        sw.WriteLine($"  Name[Group1] = \"{shortDesc}\";");
 
         foreach(var key in keys)
         {
@@ -76,7 +76,7 @@ class LayoutGenerator
 
         sw.WriteLine("<variant>");
         sw.WriteLine("  <configItem>");
-        sw.WriteLine($"    <name>{lang}_{variantName}</name>");
+        sw.WriteLine($"    <name>{variantName}</name>");
         sw.WriteLine($"    <description>{shortDesc}</description>");
         sw.WriteLine("  </configItem>");
         sw.WriteLine("</variant>");
