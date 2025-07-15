@@ -1,7 +1,7 @@
 /*
- * Project Name: Xkb Keyboard Layout Creator (XKLC)
+ * Project Name: Xkb Layout Creator (XLC)
  * Author: Bread92 <vaneck.van2019@gmail.com>
- * Date: July 10, 2025
+ * Date: July 15, 2025
  * Description: A simple UI app for creating your own keyboard layout.
  * Check out README.md for more information.
  *

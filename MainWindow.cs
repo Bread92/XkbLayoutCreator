@@ -1,7 +1,7 @@
 /*
- * Project Name: Xkb Keyboard Layout Creator (XKLC)
+ * Project Name: Xkb Layout Creator (XLC)
  * Author: Bread92 <vaneck.van2019@gmail.com>
- * Date: July 10, 2025
+ * Date: July 15, 2025
  * Description: A simple UI app for creating your own keyboard layout.
  * Check out README.md for more information.
  *
@@ -46,7 +46,7 @@ namespace LayoutMaker
 
         private LayoutBuilder lb = new LayoutBuilder();
 
-        public MainWindow() : base("Keyboard Layout Creator")
+        public MainWindow() : base("Xkb Layout Creator")
         {
             SetDefaultSize(700, 200);
             SetPosition(WindowPosition.Center);
@@ -316,7 +316,7 @@ namespace LayoutMaker
             {
                 if (inputDialog.Run() == (int)ResponseType.Accept)
                 {
-                    string userInput = entry.Text.Trim();
+                    string userInput = entry.Text;
 
                     if (string.IsNullOrEmpty(userInput))
                     {
@@ -327,7 +327,8 @@ namespace LayoutMaker
                     else if (userInput.StartsWith("U+") || userInput.StartsWith("U"))
                     {
                         string converted = ConvertUnicodeInput(userInput);
-                        if (converted != null)
+
+                        if (converted != null && converted != "?")
                         {
                             preferredCharacter = converted;
                             lb.SetKey(keyCode, preferredCharacter);
@@ -361,6 +362,8 @@ namespace LayoutMaker
                                 "Please enter exactly one character or a valid unicode codepoint (U#####).");
                         warningDialog.Run();
                         warningDialog.Destroy();
+
+                        entry.Text = string.Empty;
                     }
                 }
                 else
