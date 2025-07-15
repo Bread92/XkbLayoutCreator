@@ -1,13 +1,14 @@
 ### Linux Keyboard Layout Creator
-This is a simple UI application that generates .xkb and .xml snippets for you to copy paste into corresponding place. This program <u>DOES NOT</u> touch your system files.
+This is a simple UI application that generates .xkb and .xml snippets for you to manually copy into the corresponding system files. This program does not modify your system files.
 
 #### How to use
 1. Click on the key you want to change and copy-paste/type the desired character in the opened dialog window.
-2. To not lose your progress (if you need to close it) use File->Save. The app will create a .klc file, which you can load later via File->Load.
+2. To not lose your progress (if you need to close the app) use File->Save. The app will create a .klc file, which you can load later via File->Load.
 3. After you've done all the changes click File->Export. It will generate .xkb and .xml snippets for you to copy-paste into your system files.
 > [!CAUTION]
-> The following files require root privileges to edit.
-4. Go to symbols/ directory (/usr/share/X11/xkb/symbols), find the language, of which your layout is a variant of, and paste the .xkb snippet in-between the others.
+> The following files require root privileges to edit (sudo nano/vim). <b>! Backup your files before continuing !</b>
+4. Go to symbols/ directory (/usr/share/X11/xkb/symbols), find the language, of which your layout is a variant of, and paste the .xkb snippet at the bottom (or in-between other variants).
+
 ### Example: English (Shavian)
 > ```
 > partial alphanumeric_keys
@@ -21,8 +22,10 @@ This is a simple UI application that generates .xkb and .xml snippets for you to
 > xkb_symbols "intl" {
 >     ...
 > };
+>
+> <OR HERE>
 > ```
-5. Go to xkb/rules/ directory and add in evdev.lst in `! variant` section your variant's abbreviation and full name.
+5. Go to xkb/rules/ directory and add in evdev.lst inside the `! variant` section your variant's abbreviation and full name.
 ### Example (Shavian)
 > ```
 > ! variant
@@ -32,7 +35,8 @@ This is a simple UI application that generates .xkb and .xml snippets for you to
 >   ...
 > ```
 
-6. In xkb/rules/ directory in evdev.xml file find `<layoutList>`, then `<layout>` of your language, then `<variantList>` and paste the .xml snippet in your language accordingly.
+6. In xkb/rules/ directory in evdev.xml file find `<layoutList>`, then `<layout>` of your language, then `<variantList>` and paste the .xml snippet in-between other variants.
+
 ### Example
 > ```
 > <layout>
@@ -56,5 +60,4 @@ This is a simple UI application that generates .xkb and .xml snippets for you to
 >     </variant>
 >     ...
 > ```
-7. Log out (or restart your PC) and select your layout in your Settings. Profit!
-### TODO: Insert pictures and explain exactly where to find the language
+7. Log out (or restart your PC) and select your layout in your Settings or using `setxkbmap`.

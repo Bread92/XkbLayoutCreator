@@ -16,23 +16,12 @@ using System.Text;
 using System.Collections.Generic;
 using Gtk;
 
-// TODO:
-// - Combobox to choose which language's variant (load from xkb/symbols dir)
-// - Option for allowing changing system files
-// - Backing up system files before changing (once! check for <name>.bak
-//   before rewriting!)
-// ? Allow making your own languages instead of only variants(?)
 namespace LayoutMaker
 {
     class MainWindow : Window
     {
         private string preferredCharacter = string.Empty;
         private string filePath = string.Empty;
-        private string symbolsPath = "/usr/share/X11/xkb/symbols";
-        // private bool   isSudo = false;
-
-        // ComboBox for Language Selection
-        ComboBoxText languageComboBox = new ComboBoxText();
 
         public List<List<Button>> buttons = new List<List<Button>>();
         public List<Button> Row1 = new List<Button>();
@@ -47,7 +36,6 @@ namespace LayoutMaker
         private const int Row4Length = 10;
         private const int Row5Length = 1;
 
-        private LayoutBuilder lb = new LayoutBuilder();
         public Box mainVbox = new Box(Orientation.Vertical, 2);
         public Box rowBox1 = new Box(Orientation.Horizontal, 2);
         public Box rowBox2 = new Box(Orientation.Horizontal, 2);
@@ -56,12 +44,12 @@ namespace LayoutMaker
         public Box rowBox5 = new Box(Orientation.Horizontal, 2);
         public Box checkboxes = new Box(Orientation.Horizontal, 2);
 
+        private LayoutBuilder lb = new LayoutBuilder();
+
         public MainWindow() : base("Keyboard Layout Creator")
         {
             SetDefaultSize(700, 200);
             SetPosition(WindowPosition.Center);
-
-            // isSudo = HasSudoRights();
 
             buttons.Add(Row1);
             buttons.Add(Row2);
@@ -105,33 +93,8 @@ namespace LayoutMaker
             checkboxes.PackStart(altCheck, false, false, 0);
 
             CreateButtonLayout();
+
             UpdateKeyLabels();
-
-            Box bottomHbox = new Box(Orientation.Horizontal, 5);
-
-            Label pathLabel = new Label("No symbols path selected. Default: ");
-
-            if (Directory.Exists(symbolsPath))
-            {
-                pathLabel.Text = "Path to xkb symbols: ";
-            }
-
-            Entry pathEntry = new Entry();
-            pathEntry.Sensitive = false;
-            pathEntry.PlaceholderText = symbolsPath;
-
-            Button pathButton = new Button("Select Path");
-            pathButton.Clicked += (sender, e) => OpenDirectoryChooser(pathLabel, pathEntry);
-
-            languageComboBox.Active = 0;
-            languageComboBox.Sensitive = false;
-
-            PopulateComboBox(symbolsPath);
-
-            bottomHbox.PackStart(pathLabel, false, false, 0);
-            bottomHbox.PackStart(pathEntry, true, true, 0);
-            bottomHbox.PackStart(pathButton, false, false, 0);
-            bottomHbox.PackStart(languageComboBox, false, false, 0);
 
             mainVbox.PackStart(mb, false, false, 0);
             mainVbox.PackStart(rowBox1, false, false, 0);
@@ -140,61 +103,10 @@ namespace LayoutMaker
             mainVbox.PackStart(rowBox4, false, false, 0);
             mainVbox.PackStart(rowBox5, false, false, 0);
             mainVbox.PackStart(checkboxes, false, false, 0);
-            mainVbox.PackStart(bottomHbox, false, false, 0);
 
             Add(mainVbox);
             ShowAll();
             DeleteEvent += Exit;
-        }
-
-        private void OpenDirectoryChooser(Label pathLabel, Entry entry)
-        {
-            FileChooserDialog dirChooser = new FileChooserDialog("Select a Directory",
-                    this,
-                    FileChooserAction.SelectFolder,
-                    "Cancel", ResponseType.Cancel,
-                    "Select", ResponseType.Accept);
-
-            if (dirChooser.Run() == (int)ResponseType.Accept)
-            {
-                string selectedPath = dirChooser.Filename;
-                pathLabel.Text = "Path to xkb symbols: ";
-                symbolsPath = selectedPath;
-                entry.Text = selectedPath;
-                PopulateComboBox(selectedPath);
-            }
-
-
-            dirChooser.Destroy();
-        }
-
-        private void PopulateComboBox(string directoryPath)
-        {
-            if (!Directory.Exists(directoryPath))
-            {
-                Console.WriteLine("Directory does not exist.");
-                return;
-            }
-
-            if(!directoryPath.EndsWith("symbols"))
-            {
-                return;
-            }
-
-            List<string> fileNames = Directory.GetFiles(directoryPath).Select(System.IO.Path.GetFileName).ToList();
-
-            fileNames = fileNames.Where(x => x.Length <= 3).OrderBy(x => x).ToList();
-
-            int usIndex = fileNames.IndexOf("us");
-
-            foreach(var fileName in fileNames)
-            {
-                string view = fileName.ToUpper();
-                languageComboBox.Append(fileName, view);
-            }
-
-            languageComboBox.Sensitive = true;
-            languageComboBox.Active = usIndex;
         }
 
         private void Exit(object sender, DeleteEventArgs a)
@@ -294,136 +206,7 @@ namespace LayoutMaker
         {
             SaveFile();
 
-            // if(isSudo)
-            // {
-            //     GenerateBackupFiles();
-            // }
-
             ShowExportDialog();
-        }
-
-        private void GenerateBackupFiles()
-        {
-            string lang = languageComboBox.ActiveText.ToLower();
-            string sourcePath = symbolsPath + "/" + lang;
-            string backupPath = symbolsPath + "/" + lang + ".bak";
-
-            Console.WriteLine(sourcePath);
-            Console.WriteLine(backupPath);
-
-            if (!File.Exists(backupPath))
-            {
-                File.Copy(sourcePath, backupPath);
-                Console.WriteLine($"File copied to {backupPath}");
-            }
-            else
-            {
-                Console.WriteLine(".bak already exists. No action taken.");
-            }
-
-            sourcePath = symbolsPath + "/../rules/evdev.lst";
-            backupPath = sourcePath + ".bak";
-
-            if (!File.Exists(backupPath))
-            {
-                File.Copy(sourcePath, backupPath);
-                Console.WriteLine($"File copied to {backupPath}");
-            }
-            else
-            {
-                Console.WriteLine(".bak already exists. No action taken.");
-            }
-
-            sourcePath = symbolsPath + "/../rules/evdev.xml";
-            backupPath = sourcePath + ".bak";
-
-            if (!File.Exists(backupPath))
-            {
-                File.Copy(sourcePath, backupPath);
-                Console.WriteLine($"File copied to {backupPath}");
-            }
-            else
-            {
-                Console.WriteLine(".bak already exists. No action taken.");
-            }
-        }
-
-        private void WriteToXkbFile(string fileName)
-        {
-            string lang = languageComboBox.ActiveText.ToLower();
-            string sourcePath = symbolsPath + "/" + lang;
-
-            string xkbText = File.ReadAllText(fileName);
-
-            string sourceText = File.ReadAllText(sourcePath);
-
-            if(sourceText.Contains(fileName))
-            {
-                Console.WriteLine("This variant already exists! Aborting...");
-                return;
-            }
-
-            File.AppendAllText(sourcePath, $"\n// Generated By XKLC (Xkb Keyboard Layout Creator)\n{xkbText}");
-            Console.WriteLine("XKB appended successfully.");
-        }
-
-        private void WriteToLstFile(string fileName, string shortDesc)
-        {
-            string lang = languageComboBox.ActiveText.ToLower();
-            string sourcePath = symbolsPath + "/../rules";
-
-            // ru_accent       ru: Russian (Accent)
-            string lstText = $"  {fileName}   {lang}: {shortDesc}";
-
-            string sourceText = File.ReadAllText(sourcePath);
-
-            if(sourceText.Contains(shortDesc))
-            {
-                Console.WriteLine("This variant already exists! Aborting...");
-                return;
-            }
-
-            StreamReader sr = new StreamReader(sourcePath + "/evdev.lst");
-            StreamWriter sw = new StreamWriter(sourcePath + "/evdev.lst.temp");
-
-            while(sr.Peek() != -1)
-            {
-                string line = sr.ReadLine();
-                if (line.Contains("! variant"))
-                {
-                    sw.WriteLine(line);
-                    sw.WriteLine(lstText);
-                }
-                else
-                {
-                    sw.WriteLine(line);
-                }
-            }
-
-            sw.Close();
-            sr.Close();
-
-            File.Move(sourcePath + "/evdev.lst.temp", sourcePath + "/evdev.lst");
-
-            Console.WriteLine("LST appended successfully.");
-        }
-
-        private void WriteToXmlFile(string fileName, string shortDesc)
-        {
-            string lang = languageComboBox.ActiveText.ToLower();
-            string sourcePath = symbolsPath + "/" + lang;
-
-            string xmlText = File.ReadAllText(fileName);
-
-            string sourceText = File.ReadAllText(sourcePath);
-
-            if(sourceText.Contains(fileName))
-            {
-                Console.WriteLine("This variant already exists! Aborting...");
-                return;
-            }
-
-            Console.WriteLine("TODO");
         }
 
         private void ShowExportDialog()
@@ -434,32 +217,66 @@ namespace LayoutMaker
 
             Box vbox = new Box(Orientation.Vertical, 5);
 
-            Label variantLabel = new Label("Variant's Code [Shavian -> shvn]:");
+            Label langLabel = new Label("Language Code [us, ru, de, cz]:");
+            Entry langEntry = new Entry();
+
+            Label variantLabel = new Label("Your variant's Code [Shavian -> shvn]:");
             Entry variantEntry = new Entry();
 
-            Label layoutNameLabel = new Label("Layout Description [English (Shavian)]:");
-            Entry layoutNameEntry = new Entry();
+            Label layoutDescLabel = new Label("Short description [English (Shavian)]:");
+            Entry layoutDescEntry = new Entry();
 
+            vbox.PackStart(langLabel, false, false, 0);
+            vbox.PackStart(langEntry, false, false, 5);
             vbox.PackStart(variantLabel, false, false, 0);
             vbox.PackStart(variantEntry, false, false, 5);
-            vbox.PackStart(layoutNameLabel, false, false, 0);
-            vbox.PackStart(layoutNameEntry, false, false, 5);
+            vbox.PackStart(layoutDescLabel, false, false, 0);
+            vbox.PackStart(layoutDescEntry, false, false, 5);
 
             exportDialog.ContentArea.PackStart(vbox, true, true, 0);
             exportDialog.ShowAll();
 
-            if (exportDialog.Run() == (int)ResponseType.Accept)
+            bool validInput = false;
+
+            while(!validInput)
             {
-                string variantCode = variantEntry.Text;
-                string layoutName = layoutNameEntry.Text;
+                if (exportDialog.Run() == (int)ResponseType.Accept)
+                {
+                    string lang = langEntry.Text;
+                    string variantCode = variantEntry.Text;
+                    string layoutDesc = layoutDescEntry.Text;
 
-                string lang = languageComboBox.ActiveText.ToLower();
+                    if (string.IsNullOrWhiteSpace(lang) || 
+                            string.IsNullOrWhiteSpace(variantCode) || 
+                            string.IsNullOrWhiteSpace(layoutDesc))
+                    {
+                        MessageDialog warningDialog = new MessageDialog(
+                                this,
+                                DialogFlags.Modal,
+                                MessageType.Warning,
+                                ButtonsType.Ok,
+                                "One of the fields is empty!"
+                                );
+                        warningDialog.Run();
 
-                LayoutGenerator lg = new LayoutGenerator();
-                lg.Generate(lb.Keys, lang, variantCode, layoutName);
+                        warningDialog.Destroy();
+                        continue;
+                    }
 
-                // WriteToXkbFile(lang + "_" + variantCode);
-                // WriteToLstFile(lang + "_" + variantCode, layoutName);
+                    validInput = true;
+                    LayoutGenerator lg = new LayoutGenerator();
+                    lg.Generate(lb.Keys, lang, variantCode, layoutDesc);
+
+                    MessageDialog infoDialog = new MessageDialog(
+                            this,
+                            DialogFlags.Modal,
+                            MessageType.Info,
+                            ButtonsType.Ok,
+                            "Files generated successfully!\nProceed to readme file for further instructions"
+                            );
+                    infoDialog.Run();
+                    infoDialog.Destroy();
+                }
             }
 
             exportDialog.Destroy();

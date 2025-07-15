@@ -15,7 +15,7 @@ class LayoutGenerator
     public void GenerateXkb(List<Key> keys, string lang, string variantName)
     {
         bool altGr = false;
-        string fileName = $"{lang}_{variantName}";
+        string fileName = $"{lang}_{variantName}.xkb";
 
         StreamWriter sw = new StreamWriter(fileName);
 
