@@ -304,8 +304,10 @@ namespace LayoutMaker
             inputDialog.AddButton("Cancel", ResponseType.Cancel);
             inputDialog.AddButton("OK", ResponseType.Accept);
 
+            Label charLabel = new Label("New character or unicode value (U####):");
             Entry entry = new Entry();
-            inputDialog.ContentArea.PackStart(entry, true, true, 0);
+            inputDialog.ContentArea.PackStart(charLabel, false, false, 5);
+            inputDialog.ContentArea.PackStart(entry, false, false, 5);
             inputDialog.ShowAll();
 
             bool validInput = false;
@@ -314,29 +316,51 @@ namespace LayoutMaker
             {
                 if (inputDialog.Run() == (int)ResponseType.Accept)
                 {
-                    preferredCharacter = entry.Text;
+                    string userInput = entry.Text.Trim();
 
-                    if (preferredCharacter.Length > 1)
+                    if (string.IsNullOrEmpty(userInput))
                     {
-                        MessageDialog warningDialog = new MessageDialog(
+                        preferredCharacter = "NoSymbol";
+                        lb.SetKey(keyCode, preferredCharacter);
+                        validInput = true;
+                    }
+                    else if (userInput.StartsWith("U+") || userInput.StartsWith("U"))
+                    {
+                        string converted = ConvertUnicodeInput(userInput);
+                        if (converted != null)
+                        {
+                            preferredCharacter = converted;
+                            lb.SetKey(keyCode, preferredCharacter);
+                            validInput = true;
+                        }
+                        else
+                        {
+                            var warningDialog = new MessageDialog(
+                                    this,
+                                    DialogFlags.Modal,
+                                    MessageType.Warning,
+                                    ButtonsType.Ok,
+                                    "Invalid Unicode codepoint");
+                            warningDialog.Run();
+                            warningDialog.Destroy();
+                        }
+                    }
+                    else if (userInput.Length == 1)
+                    {
+                        preferredCharacter = userInput;
+                        lb.SetKey(keyCode, preferredCharacter);
+                        validInput = true;
+                    }
+                    else
+                    {
+                        var warningDialog = new MessageDialog(
                                 this,
                                 DialogFlags.Modal,
                                 MessageType.Warning,
                                 ButtonsType.Ok,
-                                "Please enter exactly one character."
-                                );
+                                "Please enter exactly one character or a valid unicode codepoint (U#####).");
                         warningDialog.Run();
                         warningDialog.Destroy();
-                    }
-                    else
-                    {
-                        if(preferredCharacter == string.Empty)
-                        {
-                            preferredCharacter = "NoSymbol";
-                        }
-
-                        lb.SetKey(keyCode, preferredCharacter);
-                        validInput = true;
                     }
                 }
                 else
@@ -348,6 +372,35 @@ namespace LayoutMaker
 
             UpdateKeyLabels();
             inputDialog.Destroy();
+        }
+
+        private string ConvertUnicodeInput(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            input = input.Trim().ToUpperInvariant();
+
+            if (input.StartsWith("U+"))
+                input = input.Substring(2);
+            else if (input.StartsWith("U"))
+                input = input.Substring(1);
+            else
+                return input; // Not a unicode codepoint, return as is.
+
+            if (int.TryParse(input, System.Globalization.NumberStyles.HexNumber, null, out int codepoint))
+            {
+                try
+                {
+                    return char.ConvertFromUtf32(codepoint);
+                }
+                catch
+                {
+                    return "?"; // Invalid codepoint, could throw out of range.
+                }
+            }
+
+            return "?"; // Failed to parse.
         }
 
         private void UpdateKeyLabels()
