@@ -313,7 +313,7 @@ namespace LayoutMaker
                         if (converted != null && converted != "?")
                         {
                             preferredCharacter = converted;
-                            lb.SetKey(keyCode, preferredCharacter);
+                            lb.SetKey(keyCode, userInput);
                             validInput = true;
                         }
                         else
@@ -395,6 +395,10 @@ namespace LayoutMaker
                             b.Label = "[Space]";
                         else if(label == "NoSymbol")
                             b.Label = "";
+                        else if (label.StartsWith("U") || label.StartsWith("U+"))
+                        {
+                            b.Label = ConvertUnicodeInput(label);
+                        }
                         else
                             b.Label = label;
 
