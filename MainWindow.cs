@@ -18,7 +18,8 @@ namespace LayoutMaker
 {
     class MainWindow : Window
     {
-        private string filePath = string.Empty;
+        private string _filePath = string.Empty;
+        private bool _exportCancelled = true;
 
         public List<List<Button>> buttons = new();
         public List<Button> Row1 = new();
@@ -115,7 +116,7 @@ namespace LayoutMaker
         {
             lb = new LayoutBuilder();
 
-            filePath = string.Empty;
+            _filePath = string.Empty;
             UpdateKeyLabels();
         }
 
@@ -134,9 +135,9 @@ namespace LayoutMaker
 
             if (loadDialog.Run() == (int)ResponseType.Accept)
             {
-                filePath = loadDialog.Filename;
-                lb.LoadLayout(filePath);
-                Console.WriteLine($"Loaded file: {filePath}");
+                _filePath = loadDialog.Filename;
+                lb.LoadLayout(_filePath);
+                Console.WriteLine($"Loaded file: {_filePath}");
             }
 
             UpdateKeyLabels();
@@ -146,14 +147,14 @@ namespace LayoutMaker
 
         private void SaveFile()
         {
-            if(filePath == string.Empty)
+            if(_filePath == string.Empty)
             {
                 SaveFileAs();
                 return;
             }
 
             string fileText = CreateKlcFile();
-            System.IO.File.WriteAllText(filePath, fileText);
+            System.IO.File.WriteAllText(_filePath, fileText);
         }
 
         private void SaveFile(object sender, EventArgs a)
@@ -174,24 +175,28 @@ namespace LayoutMaker
             filter.AddPattern("*.klc");
             saveDialog.AddFilter(filter);
 
-            if(filePath == string.Empty)
+            if(_filePath == string.Empty)
             {
                 saveDialog.CurrentName="my_layout.klc";
             }
             else
             {
                 // Collision with Widget.Path
-                string fileName = System.IO.Path.GetFileName(filePath);
+                string fileName = System.IO.Path.GetFileName(_filePath);
                 saveDialog.CurrentName=fileName;
             }
 
             if (saveDialog.Run() == (int)ResponseType.Accept)
             {
-                string filePath = saveDialog.Filename;
-                this.filePath = filePath;
+                _filePath = saveDialog.Filename;
                 string fileText = CreateKlcFile();
-                System.IO.File.WriteAllText(filePath, fileText);
-                Console.WriteLine($"Saved file: {filePath}");
+                System.IO.File.WriteAllText(_filePath, fileText);
+                Console.WriteLine($"Saved file: {_filePath}");
+                _exportCancelled = false;
+            }
+            else
+            {
+                _exportCancelled = true;
             }
 
             saveDialog.Destroy();
@@ -203,7 +208,8 @@ namespace LayoutMaker
         {
             SaveFile();
 
-            ShowExportDialog();
+            if(!_exportCancelled)
+                ShowExportDialog();
         }
 
         private void ShowExportDialog()
@@ -255,7 +261,12 @@ namespace LayoutMaker
                     LayoutGenerator lg = new();
                     lg.Generate(lb.Keys, lang, variantCode, layoutDesc);
 
-                    ShowDialog(MessageType.Info, "Files generated successfully!\nProceed to readme file for further instructions");
+                    ShowDialog(MessageType.Info, "Files generated successfully!\nProceed to README file for further instructions");
+                }
+                else
+                {
+                    exportDialog.Destroy();
+                    return;
                 }
             }
 
