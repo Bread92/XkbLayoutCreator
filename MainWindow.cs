@@ -19,7 +19,6 @@ namespace LayoutMaker
     class MainWindow : Window
     {
         private string _filePath = string.Empty;
-        private bool _exportCancelled = true;
 
         public List<List<Button>> buttons = new();
         public List<Button> Row1 = new();
@@ -192,11 +191,6 @@ namespace LayoutMaker
                 string fileText = CreateKlcFile();
                 System.IO.File.WriteAllText(_filePath, fileText);
                 Console.WriteLine($"Saved file: {_filePath}");
-                _exportCancelled = false;
-            }
-            else
-            {
-                _exportCancelled = true;
             }
 
             saveDialog.Destroy();
@@ -206,10 +200,15 @@ namespace LayoutMaker
 
         private void ExportFile(object sender, EventArgs a)
         {
-            SaveFile();
+            if(_filePath == string.Empty)
+            {
+                SaveFile();
+            }
 
-            if(!_exportCancelled)
-                ShowExportDialog();
+            if(_filePath == string.Empty)
+                return;
+
+            ShowExportDialog();
         }
 
         private void ShowExportDialog()
@@ -319,6 +318,8 @@ namespace LayoutMaker
                     }
                     else if ((userInput.StartsWith("U+") || userInput.StartsWith("U")) && userInput.Length > 1)
                     {
+                        userInput = userInput.Replace("+", "");
+
                         string converted = ConvertUnicodeInput(userInput);
 
                         if (converted != null && converted != "?")
