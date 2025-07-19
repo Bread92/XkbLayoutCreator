@@ -317,7 +317,7 @@ namespace LayoutMaker
                         lb.SetKey(keyCode, preferredCharacter);
                         validInput = true;
                     }
-                    else if (userInput.StartsWith("U+") || userInput.StartsWith("U"))
+                    else if ((userInput.StartsWith("U+") || userInput.StartsWith("U")) && userInput.Length > 1)
                     {
                         string converted = ConvertUnicodeInput(userInput);
 
@@ -406,7 +406,7 @@ namespace LayoutMaker
                             b.Label = "[Space]";
                         else if(label == "NoSymbol")
                             b.Label = "";
-                        else if (label.StartsWith("U") || label.StartsWith("U+"))
+                        else if ((label.StartsWith("U") || label.StartsWith("U+")) && label.Length > 1)
                         {
                             b.Label = ConvertUnicodeInput(label);
                         }
