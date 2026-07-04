@@ -531,109 +531,74 @@ namespace LayoutMaker
 
         private void Install(object sender, EventArgs a)
         {
-            if(_filePath == string.Empty)
-            {
-                SaveFile();
-            }
-
-            if(_filePath == string.Empty)
-                return;
-
             ShowInstallDialog();
         }
 
-        private void ShowInstallDialog()
+        void ShowInstallDialog()
         {
-            Dialog exportDialog = new("Install Layout", this, DialogFlags.Modal);
+            using Dialog exportDialog = new("Install Layout", this, DialogFlags.Modal);
             exportDialog.AddButton("Cancel", ResponseType.Cancel);
             exportDialog.AddButton("OK", ResponseType.Accept);
 
             Box vbox = new(Orientation.Vertical, 5);
 
-            Label langLabel = new("Language Code [us, ru, de, cz]:");
             Entry langEntry = new();
-
-            Label variantLabel = new("Your Variant's Code [Shavian -> shvn]:");
             Entry variantEntry = new();
-
-            Label layoutDescLabel = new("Short description [English (Shavian)]:");
             Entry layoutDescEntry = new();
 
-            vbox.PackStart(langLabel, false, false, 0);
+            vbox.PackStart(new Label("Language Code [us, ru, de, cz]:"), false, false, 0);
             vbox.PackStart(langEntry, false, false, 5);
-            vbox.PackStart(variantLabel, false, false, 0);
+            vbox.PackStart(new Label("Your Variant's Code [Shavian -> shvn]:"), false, false, 0);
             vbox.PackStart(variantEntry, false, false, 5);
-            vbox.PackStart(layoutDescLabel, false, false, 0);
+            vbox.PackStart(new Label("Short description [English (Shavian)]:"), false, false, 0);
             vbox.PackStart(layoutDescEntry, false, false, 5);
 
             exportDialog.ContentArea.PackStart(vbox, true, true, 0);
             exportDialog.ShowAll();
 
-            bool validInput = false;
+            ResponseType response = (ResponseType)exportDialog.Run();
 
-            while(!validInput)
+            if (response != ResponseType.Accept)
+                return;
+
+            string lang = langEntry.Text;
+            string variantCode = variantEntry.Text;
+            string layoutDesc = layoutDescEntry.Text;
+
+            if (string.IsNullOrWhiteSpace(lang) ||
+                    string.IsNullOrWhiteSpace(variantCode) ||
+                    string.IsNullOrWhiteSpace(layoutDesc))
             {
-                if (exportDialog.Run() == (int)ResponseType.Accept)
-                {
-                    string lang = langEntry.Text;
-                    string variantCode = variantEntry.Text;
-                    string layoutDesc = layoutDescEntry.Text;
-
-                    if (string.IsNullOrWhiteSpace(lang) ||
-                            string.IsNullOrWhiteSpace(variantCode) ||
-                            string.IsNullOrWhiteSpace(layoutDesc))
-                    {
-                        ShowDialog(MessageType.Warning, "One of the fields is empty!");
-                        continue;
-                    }
-
-                    if(!IsValidLang(lang))
-                    {
-                        ShowDialog(MessageType.Warning, "This Language doesn't exist!");
-                        continue;
-                    }
-
-                    validInput = true;
-
-                    LayoutInstaller installer = new();
-
-                    if(installer.IsVariantPresent(lang, variantCode))
-                    {
-                        Dialog installDialog = new("Install", this, DialogFlags.Modal);
-                        installDialog.AddButton("Cancel", ResponseType.Cancel);
-                        installDialog.AddButton("OK", ResponseType.Accept);
-
-                        Box warningBox = new(Orientation.Vertical, 5);
-
-                        Label warningText = new("This variant already exists. Do you want to rewrite it?");
-                        warningBox.PackStart(warningText, false, false, 0);
-
-                        installDialog.ContentArea.PackStart(warningBox, true, true, 0);
-                        installDialog.ShowAll();
-
-                        if(installDialog.Run() == (int)ResponseType.Cancel)
-                        {
-                            installDialog.Destroy();
-                            exportDialog.Destroy();
-                            return;
-                        }
-
-                        installDialog.Destroy();
-                    }
-
-                    installer.Install(lb.Keys, lang, variantCode, layoutDesc);
-
-                    // ShowDialog(MessageType.Info, "Layout was installed successfully! Logout to apply changes");
-                    exportDialog.Destroy();
-                }
-                else
-                {
-                    exportDialog.Destroy();
-                    return;
-                }
+                ShowDialog(MessageType.Warning, "One of the fields is empty!");
+                return;
             }
 
-            exportDialog.Destroy();
+            if (!IsValidLang(lang))
+            {
+                ShowDialog(MessageType.Warning, "This Language doesn't exist!");
+                return;
+            }
+
+            LayoutInstaller installer = new();
+
+            if (installer.IsVariantPresent(lang, variantCode))
+            {
+                using Dialog installDialog = new("Install", this, DialogFlags.Modal);
+                installDialog.AddButton("Cancel", ResponseType.Cancel);
+                installDialog.AddButton("OK", ResponseType.Accept);
+
+                installDialog.ContentArea.PackStart(
+                        new Label("This variant already exists. Do you want to rewrite it?"),
+                        true, true, 0);
+
+                installDialog.ShowAll();
+
+                if ((ResponseType)installDialog.Run() == ResponseType.Cancel)
+                    return;
+            }
+
+            installer.Install(lb.Keys, lang, variantCode, layoutDesc);
+            ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
         }
 
         public void Delete(object sender, EventArgs a)
