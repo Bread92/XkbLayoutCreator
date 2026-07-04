@@ -599,8 +599,6 @@ namespace LayoutMaker
 
                     if(installer.IsVariantPresent(lang, variantCode))
                     {
-                        //TODO: Run a confirmation window
-                        //
                         Dialog installDialog = new("Install", this, DialogFlags.Modal);
                         installDialog.AddButton("Cancel", ResponseType.Cancel);
                         installDialog.AddButton("OK", ResponseType.Accept);
@@ -691,7 +689,7 @@ namespace LayoutMaker
                     validInput = true;
 
                     LayoutInstaller installer = new();
-                    installer.DeleteXkb(lang, variantCode);
+                    installer.Delete(lang, variantCode);
                     ShowDialog(MessageType.Info, "Layout deleted successfully!");
                 }
                 else
