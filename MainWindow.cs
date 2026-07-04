@@ -1,16 +1,7 @@
-/*
- * Project Name: Xkb Layout Creator (XLC)
- * Author: Bread92 <vaneck.van2019@gmail.com>
- * Date: July 15, 2025
- * Description: A simple UI app for creating your own keyboard layout.
- * Check out README.md for more information.
- *
- * This project is open source and available under the MIT License.
-*/
-
 using System;
 using System.IO;
 using System.Text;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Gtk;
 
@@ -18,7 +9,8 @@ namespace LayoutMaker
 {
     class MainWindow : Window
     {
-        private string _filePath = string.Empty;
+        string _filePath = string.Empty;
+        string _symbolsPath = "/usr/share/X11/xkb/symbols/";
 
         public List<List<Button>> buttons = new();
         public List<Button> Row1 = new();
@@ -63,22 +55,28 @@ namespace LayoutMaker
             MenuItem reset = new("New");
             MenuItem save = new("Save");
             MenuItem saveAs = new("Save As");
-            MenuItem export = new("Export");
             MenuItem load = new("Load");
+            MenuItem export = new("Export");
+            MenuItem install = new("Install");
+            MenuItem delete = new("Delete");
             MenuItem exit = new("Exit");
 
             reset.Activated += Reset;
             save.Activated += SaveFile;
             saveAs.Activated += SaveFileAs;
-            export.Activated += ExportFile;
             load.Activated += LoadFile;
+            export.Activated += ExportFile;
+            install.Activated += Install;
+            delete.Activated += Delete;
             exit.Activated += ExitMenu;
 
             filemenu.Append(reset);
             filemenu.Append(save);
             filemenu.Append(saveAs);
-            filemenu.Append(export);
             filemenu.Append(load);
+            filemenu.Append(export);
+            filemenu.Append(install);
+            filemenu.Append(delete);
             filemenu.Append(exit);
 
             mb.Append(file);
@@ -248,11 +246,16 @@ namespace LayoutMaker
                     string variantCode = variantEntry.Text;
                     string layoutDesc = layoutDescEntry.Text;
 
-                    if (string.IsNullOrWhiteSpace(lang) || 
-                            string.IsNullOrWhiteSpace(variantCode) || 
+                    if (string.IsNullOrWhiteSpace(lang) ||
+                            string.IsNullOrWhiteSpace(variantCode) ||
                             string.IsNullOrWhiteSpace(layoutDesc))
                     {
                         ShowDialog(MessageType.Warning, "One of the fields is empty!");
+                        continue;
+                    }
+                    if(!IsValidLang(lang))
+                    {
+                        ShowDialog(MessageType.Warning, "This Language doesn't exist!");
                         continue;
                     }
 
@@ -270,6 +273,17 @@ namespace LayoutMaker
             }
 
             exportDialog.Destroy();
+        }
+
+        bool IsValidLang(string lang)
+        {
+            if (string.IsNullOrWhiteSpace(lang))
+                return false;
+
+            // Collision with Widget.Path
+            string path = System.IO.Path.Combine(_symbolsPath, lang);
+
+            return File.Exists(path);
         }
 
         void OnShiftToggled(object sender, EventArgs args)
@@ -513,6 +527,181 @@ namespace LayoutMaker
                 sb.AppendLine(key.ToKlcString());
 
             return sb.ToString();
+        }
+
+        private void Install(object sender, EventArgs a)
+        {
+            if(_filePath == string.Empty)
+            {
+                SaveFile();
+            }
+
+            if(_filePath == string.Empty)
+                return;
+
+            ShowInstallDialog();
+        }
+
+        private void ShowInstallDialog()
+        {
+            Dialog exportDialog = new("Install Layout", this, DialogFlags.Modal);
+            exportDialog.AddButton("Cancel", ResponseType.Cancel);
+            exportDialog.AddButton("OK", ResponseType.Accept);
+
+            Box vbox = new(Orientation.Vertical, 5);
+
+            Label langLabel = new("Language Code [us, ru, de, cz]:");
+            Entry langEntry = new();
+
+            Label variantLabel = new("Your Variant's Code [Shavian -> shvn]:");
+            Entry variantEntry = new();
+
+            Label layoutDescLabel = new("Short description [English (Shavian)]:");
+            Entry layoutDescEntry = new();
+
+            vbox.PackStart(langLabel, false, false, 0);
+            vbox.PackStart(langEntry, false, false, 5);
+            vbox.PackStart(variantLabel, false, false, 0);
+            vbox.PackStart(variantEntry, false, false, 5);
+            vbox.PackStart(layoutDescLabel, false, false, 0);
+            vbox.PackStart(layoutDescEntry, false, false, 5);
+
+            exportDialog.ContentArea.PackStart(vbox, true, true, 0);
+            exportDialog.ShowAll();
+
+            bool validInput = false;
+
+            while(!validInput)
+            {
+                if (exportDialog.Run() == (int)ResponseType.Accept)
+                {
+                    string lang = langEntry.Text;
+                    string variantCode = variantEntry.Text;
+                    string layoutDesc = layoutDescEntry.Text;
+
+                    if (string.IsNullOrWhiteSpace(lang) ||
+                            string.IsNullOrWhiteSpace(variantCode) ||
+                            string.IsNullOrWhiteSpace(layoutDesc))
+                    {
+                        ShowDialog(MessageType.Warning, "One of the fields is empty!");
+                        continue;
+                    }
+
+                    if(!IsValidLang(lang))
+                    {
+                        ShowDialog(MessageType.Warning, "This Language doesn't exist!");
+                        continue;
+                    }
+
+                    validInput = true;
+
+                    LayoutInstaller installer = new();
+
+                    if(installer.IsVariantPresent(lang, variantCode))
+                    {
+                        //TODO: Run a confirmation window
+                        //
+                        Dialog installDialog = new("Install", this, DialogFlags.Modal);
+                        installDialog.AddButton("Cancel", ResponseType.Cancel);
+                        installDialog.AddButton("OK", ResponseType.Accept);
+
+                        Box warningBox = new(Orientation.Vertical, 5);
+
+                        Label warningText = new("This variant already exists. Do you want to rewrite it?");
+                        warningBox.PackStart(warningText, false, false, 0);
+
+                        installDialog.ContentArea.PackStart(warningBox, true, true, 0);
+                        installDialog.ShowAll();
+
+                        if(installDialog.Run() == (int)ResponseType.Cancel)
+                        {
+                            installDialog.Destroy();
+                            exportDialog.Destroy();
+                            return;
+                        }
+
+                        installDialog.Destroy();
+                    }
+
+                    installer.Install(lb.Keys, lang, variantCode, layoutDesc);
+
+                    // ShowDialog(MessageType.Info, "Layout was installed successfully! Logout to apply changes");
+                    exportDialog.Destroy();
+                }
+                else
+                {
+                    exportDialog.Destroy();
+                    return;
+                }
+            }
+
+            exportDialog.Destroy();
+        }
+
+        public void Delete(object sender, EventArgs a)
+        {
+            Dialog deleteDialog = new("Delete", this, DialogFlags.Modal);
+            deleteDialog.AddButton("Cancel", ResponseType.Cancel);
+            deleteDialog.AddButton("OK", ResponseType.Accept);
+
+            Box deleteBox = new(Orientation.Vertical, 5);
+
+            Label langLabel = new("Language Code [us, ru, de, cz]:");
+            Entry langEntry = new();
+
+            Label variantLabel = new("Variant's Code [Shavian -> shvn]:");
+            Entry variantEntry = new();
+
+            deleteBox.PackStart(langLabel, false, false, 0);
+            deleteBox.PackStart(langEntry, false, false, 5);
+            deleteBox.PackStart(variantLabel, false, false, 0);
+            deleteBox.PackStart(variantEntry, false, false, 5);
+
+            deleteDialog.ContentArea.PackStart(deleteBox, true, true, 0);
+            deleteDialog.ShowAll();
+
+            bool validInput = false;
+
+            while(!validInput)
+            {
+                if (deleteDialog.Run() == (int)ResponseType.Accept)
+                {
+                    string lang = langEntry.Text;
+                    string variantCode = variantEntry.Text;
+
+                    if (string.IsNullOrWhiteSpace(lang) ||
+                            string.IsNullOrWhiteSpace(variantCode))
+                    {
+                        ShowDialog(MessageType.Warning, "One of the fields is empty!");
+                        continue;
+                    }
+                    if(!IsValidLang(lang))
+                    {
+                        ShowDialog(MessageType.Warning, "This Language doesn't exist!");
+                        continue;
+                    }
+                    // Check if it's generated by XKBLC
+                    string text = File.ReadAllText($"{_symbolsPath}{lang}");
+                    if(!text.Contains($"XKBLC {lang} {variantCode}"))
+                    {
+                        ShowDialog(MessageType.Warning, "This layout either a system layout or does not exist. Can't delete");
+                        continue;
+                    }
+
+                    validInput = true;
+
+                    LayoutInstaller installer = new();
+                    installer.DeleteXkb(lang, variantCode);
+                    ShowDialog(MessageType.Info, "Layout deleted successfully!");
+                }
+                else
+                {
+                    deleteDialog.Destroy();
+                    return;
+                }
+            }
+
+            deleteDialog.Destroy();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Globalization;
 using System.IO;
 using System;
@@ -29,7 +30,6 @@ class LayoutGenerator
 
             string strKey = XkbKeys[key.KeyCode];
             string utf32str = string.Empty;
-            sw.Write($"  key <{strKey}> {{ [ ");
 
             List<string> strKeys = new()
             {
@@ -38,6 +38,11 @@ class LayoutGenerator
                 key.Alt,
                 key.ShiftAlt
             };
+
+            if (strKeys.All(s => s == "NoSymbol"))
+                continue;
+
+            sw.Write($"  key <{strKey}> {{ [ ");
 
             while(strKeys[^1] == "NoSymbol")
                 strKeys.RemoveAt(strKeys.Count - 1);

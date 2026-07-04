@@ -12,6 +12,13 @@ class Key
     {
         KeyCode = keyCode;
 
+        if(values.Length == 0)
+        {
+            Normal   = "NoSymbol";
+            Shift    = "NoSymbol";
+            Alt      = "NoSymbol";
+            ShiftAlt = "NoSymbol";
+        }
         if(values.Length == 1)
         {
             Normal   = values[0];
