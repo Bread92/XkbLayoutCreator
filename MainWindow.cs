@@ -267,7 +267,8 @@ namespace LayoutMaker
 
                     validInput = true;
                     LayoutGenerator lg = new();
-                    lg.Generate(lb.Keys, lang, variantCode, layoutDesc);
+                    Layout layout = new(lb.Keys, lang, variantCode, layoutDesc);
+                    lg.Generate(layout);
 
                     ShowDialog(MessageType.Info, "Files generated successfully!\nProceed to README file for further instructions");
                 }
@@ -585,9 +586,9 @@ namespace LayoutMaker
                 return;
             }
 
-            LayoutInstaller installer = new();
+            LayoutManager manager = new();
 
-            if (installer.IsVariantPresent(lang, variantCode))
+            if (manager.IsVariantPresent(lang, variantCode))
             {
                 using Dialog installDialog = new("Install", this, DialogFlags.Modal);
                 installDialog.AddButton("Cancel", ResponseType.Cancel);
@@ -603,7 +604,7 @@ namespace LayoutMaker
                     return;
             }
 
-            installer.Install(lb.Keys, lang, variantCode, layoutDesc);
+            manager.Install(lb.Keys, lang, variantCode, layoutDesc);
             ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
         }
 
@@ -659,8 +660,8 @@ namespace LayoutMaker
 
                     validInput = true;
 
-                    LayoutInstaller installer = new();
-                    installer.Delete(lang, variantCode);
+                    LayoutManager manager = new();
+                    manager.Delete(lang, variantCode);
                     ShowDialog(MessageType.Info, "Layout deleted successfully!");
                 }
                 else

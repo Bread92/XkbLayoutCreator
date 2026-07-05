@@ -1,29 +1,37 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Globalization;
 using System.IO;
 using System;
 
 class LayoutGenerator
 {
-    public void Generate(List<Key> keys, string lang, string variantName, string shortDesc)
+    public void Generate(Layout layout)
     {
-        GenerateXkb(keys, lang, variantName, shortDesc);
-        GenerateXml(lang, variantName, shortDesc);
+        string defaultXkbName = $"{layout.Lang}_{layout.Variant}.xkb";
+        string defaultXmlName = $"{layout.Lang}_{layout.Variant}.xml";
+
+        Generate(layout, defaultXkbName, defaultXmlName);
     }
 
-    public void GenerateXkb(List<Key> keys, string lang, string variantName, string shortDesc)
+    public void Generate(Layout layout, string xkbName, string xmlName)
+    {
+        File.WriteAllText(xkbName, GenerateXkb(layout));
+        File.WriteAllText(xmlName, GenerateXml(layout));
+    }
+
+    public string GenerateXkb(Layout layout)
     {
         bool altGr = false;
-        string fileName = $"{lang}_{variantName}.xkb";
 
-        StreamWriter sw = new(fileName);
+        StringBuilder sb = new();
 
-        sw.WriteLine("default partial alphanumeric_keys modifier_keys");
-        sw.WriteLine($"xkb_symbols \"{variantName}\" {{");
-        sw.WriteLine($"  Name[Group1] = \"{shortDesc}\";");
+        sb.AppendLine("default partial alphanumeric_keys modifier_keys");
+        sb.AppendLine($"xkb_symbols \"{layout.Variant}\" {{");
+        sb.AppendLine($"  Name[Group1] = \"{layout.Desc}\";");
 
-        foreach(var key in keys)
+        foreach(var key in layout.Keys)
         {
             if(key.Alt != "NoSymbol" || key.ShiftAlt != "NoSymbol")
                 altGr = true;
@@ -42,7 +50,7 @@ class LayoutGenerator
             if (strKeys.All(s => s == "NoSymbol"))
                 continue;
 
-            sw.Write($"  key <{strKey}> {{ [ ");
+            sb.Append($"  key <{strKey}> {{ [ ");
 
             while(strKeys[^1] == "NoSymbol")
                 strKeys.RemoveAt(strKeys.Count - 1);
@@ -58,37 +66,31 @@ class LayoutGenerator
                 }
             }
 
-            sw.Write(string.Join(", ", strKeys.ToArray()));
-            sw.Write(" ] };");
-            sw.WriteLine($" // {key.ToString()}\t{key.KeyCode}");
+            sb.Append(string.Join(", ", strKeys.ToArray()));
+            sb.Append(" ] };");
+            sb.AppendLine($" // {key.ToString()}\t{key.KeyCode}");
         }
 
         if(altGr)
-            sw.WriteLine("\n  include \"level3(ralt_switch)\"");
+            sb.AppendLine("\n  include \"level3(ralt_sbitch)\"");
 
-        sw.WriteLine("};");
+        sb.AppendLine("};");
 
-        sw.Close();
-
-        Console.WriteLine($"Generated file {fileName}"); 
+        return sb.ToString();
     }
 
-    public void GenerateXml(string lang, string variantName, string shortDesc)
+    public string GenerateXml(Layout layout)
     {
-        string fileName = $"{lang}_{variantName}.xml";
+        StringBuilder sb = new();
 
-        StreamWriter sw = new(fileName);
+        sb.AppendLine("<variant>");
+        sb.AppendLine("  <configItem>");
+        sb.AppendLine($"    <name>{layout.Variant}</name>");
+        sb.AppendLine($"    <description>{layout.Desc}</description>");
+        sb.AppendLine("  </configItem>");
+        sb.AppendLine("</variant>");
 
-        sw.WriteLine("<variant>");
-        sw.WriteLine("  <configItem>");
-        sw.WriteLine($"    <name>{variantName}</name>");
-        sw.WriteLine($"    <description>{shortDesc}</description>");
-        sw.WriteLine("  </configItem>");
-        sw.WriteLine("</variant>");
-
-        sw.Close();
-
-        Console.WriteLine($"Generated file {fileName}"); 
+        return sb.ToString();
     }
 
     private Dictionary<KeyCode, string> XkbKeys = new()
@@ -160,4 +162,3 @@ class LayoutGenerator
         return $"U{utf:X4}";
     }
 }
-
