@@ -52,6 +52,10 @@ namespace LayoutMaker
             MenuItem file = new("File");
             file.Submenu = filemenu;
 
+            Menu managemenu = new();
+            MenuItem manage = new("Manage");
+            manage.Submenu = managemenu;
+
             MenuItem reset = new("New");
             MenuItem save = new("Save");
             MenuItem saveAs = new("Save As");
@@ -74,12 +78,14 @@ namespace LayoutMaker
             filemenu.Append(save);
             filemenu.Append(saveAs);
             filemenu.Append(load);
-            filemenu.Append(export);
-            filemenu.Append(install);
-            filemenu.Append(delete);
             filemenu.Append(exit);
 
+            managemenu.Append(export);
+            managemenu.Append(install);
+            managemenu.Append(delete);
+
             mb.Append(file);
+            mb.Append(manage);
 
             CheckButton shiftCheck = new("Shift");
             CheckButton altCheck = new("AltGr");
