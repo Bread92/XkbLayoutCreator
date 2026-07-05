@@ -221,7 +221,7 @@ namespace LayoutMaker
             exportDialog.AddButton("Cancel", ResponseType.Cancel);
             exportDialog.AddButton("OK", ResponseType.Accept);
 
-            Box vbox = new(Orientation.Vertical, 5);
+            Box exportBox = new(Orientation.Vertical, 5);
 
             Label langLabel = new("Language Code [us, ru, de, cz]:");
             Entry langEntry = new();
@@ -232,14 +232,14 @@ namespace LayoutMaker
             Label layoutDescLabel = new("Short description [English (Shavian)]:");
             Entry layoutDescEntry = new();
 
-            vbox.PackStart(langLabel, false, false, 0);
-            vbox.PackStart(langEntry, false, false, 5);
-            vbox.PackStart(variantLabel, false, false, 0);
-            vbox.PackStart(variantEntry, false, false, 5);
-            vbox.PackStart(layoutDescLabel, false, false, 0);
-            vbox.PackStart(layoutDescEntry, false, false, 5);
+            exportBox.PackStart(langLabel, false, false, 0);
+            exportBox.PackStart(langEntry, false, false, 5);
+            exportBox.PackStart(variantLabel, false, false, 0);
+            exportBox.PackStart(variantEntry, false, false, 5);
+            exportBox.PackStart(layoutDescLabel, false, false, 0);
+            exportBox.PackStart(layoutDescEntry, false, false, 5);
 
-            exportDialog.ContentArea.PackStart(vbox, true, true, 0);
+            exportDialog.ContentArea.PackStart(exportBox, true, true, 0);
             exportDialog.ShowAll();
 
             bool validInput = false;
@@ -543,69 +543,86 @@ namespace LayoutMaker
 
         void ShowInstallDialog()
         {
-            using Dialog exportDialog = new("Install Layout", this, DialogFlags.Modal);
-            exportDialog.AddButton("Cancel", ResponseType.Cancel);
-            exportDialog.AddButton("OK", ResponseType.Accept);
+            Dialog installDialog = new("Install Layout", this, DialogFlags.Modal);
+            installDialog.AddButton("Cancel", ResponseType.Cancel);
+            installDialog.AddButton("OK", ResponseType.Accept);
 
-            Box vbox = new(Orientation.Vertical, 5);
+            Box installBox = new(Orientation.Vertical, 5);
 
+            Label langLabel = new("Language Code [us, ru, de, cz]:");
             Entry langEntry = new();
+            Label variantLabel = new("Your Variant's Code [Shavian -> shvn]:");
             Entry variantEntry = new();
+            Label descLabel = new("Short description [English (Shavian)]:");
             Entry layoutDescEntry = new();
 
-            vbox.PackStart(new Label("Language Code [us, ru, de, cz]:"), false, false, 0);
-            vbox.PackStart(langEntry, false, false, 5);
-            vbox.PackStart(new Label("Your Variant's Code [Shavian -> shvn]:"), false, false, 0);
-            vbox.PackStart(variantEntry, false, false, 5);
-            vbox.PackStart(new Label("Short description [English (Shavian)]:"), false, false, 0);
-            vbox.PackStart(layoutDescEntry, false, false, 5);
+            installBox.PackStart(langLabel, false, false, 0);
+            installBox.PackStart(langEntry, false, false, 5);
+            installBox.PackStart(variantLabel, false, false, 0);
+            installBox.PackStart(variantEntry, false, false, 5);
+            installBox.PackStart(descLabel, false, false, 0);
+            installBox.PackStart(layoutDescEntry, false, false, 5);
 
-            exportDialog.ContentArea.PackStart(vbox, true, true, 0);
-            exportDialog.ShowAll();
+            installDialog.ContentArea.PackStart(installBox, true, true, 0);
+            installDialog.ShowAll();
 
-            ResponseType response = (ResponseType)exportDialog.Run();
+            bool validInput = false;
 
-            if (response != ResponseType.Accept)
-                return;
-
-            string lang = langEntry.Text;
-            string variantCode = variantEntry.Text;
-            string layoutDesc = layoutDescEntry.Text;
-
-            if (string.IsNullOrWhiteSpace(lang) ||
-                    string.IsNullOrWhiteSpace(variantCode) ||
-                    string.IsNullOrWhiteSpace(layoutDesc))
+            while(!validInput)
             {
-                ShowDialog(MessageType.Warning, "One of the fields is empty!");
-                return;
-            }
+                if(installDialog.Run() == (int)ResponseType.Accept)
+                {
+                    string lang = langEntry.Text;
+                    string variantCode = variantEntry.Text;
+                    string layoutDesc = layoutDescEntry.Text;
 
-            if (!IsValidLang(lang))
-            {
-                ShowDialog(MessageType.Warning, "This Language doesn't exist!");
-                return;
-            }
+                    if (string.IsNullOrWhiteSpace(lang) ||
+                            string.IsNullOrWhiteSpace(variantCode) ||
+                            string.IsNullOrWhiteSpace(layoutDesc))
+                    {
+                        ShowDialog(MessageType.Warning, "One of the fields is empty!");
+                        continue;
+                    }
 
-            LayoutManager manager = new();
+                    if (!IsValidLang(lang))
+                    {
+                        ShowDialog(MessageType.Warning, "This Language doesn't exist!");
+                        continue;
+                    }
 
-            if (manager.IsVariantPresent(lang, variantCode))
-            {
-                using Dialog installDialog = new("Install", this, DialogFlags.Modal);
-                installDialog.AddButton("Cancel", ResponseType.Cancel);
-                installDialog.AddButton("OK", ResponseType.Accept);
+                    validInput = true;
 
-                installDialog.ContentArea.PackStart(
-                        new Label("This variant already exists. Do you want to rewrite it?"),
-                        true, true, 0);
+                    LayoutManager manager = new();
 
-                installDialog.ShowAll();
+                    if (manager.IsVariantPresent(lang, variantCode))
+                    {
+                        Dialog rewriteDialog = new("Install", this, DialogFlags.Modal);
+                        rewriteDialog.AddButton("Cancel", ResponseType.Cancel);
+                        rewriteDialog.AddButton("OK", ResponseType.Accept);
 
-                if ((ResponseType)installDialog.Run() == ResponseType.Cancel)
+                        rewriteDialog.ContentArea.PackStart(
+                                new Label("This variant already exists. Do you want to rewrite it?"),
+                                true, true, 0);
+
+                        rewriteDialog.ShowAll();
+
+                        if ((ResponseType)rewriteDialog.Run() == ResponseType.Cancel)
+                            return;
+
+                        manager.Install(lb.Keys, lang, variantCode, layoutDesc);
+                        ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
+
+                        rewriteDialog.Destroy();
+                    }
+                }
+                else
+                {
+                    installDialog.Destroy();
                     return;
+                }
             }
 
-            manager.Install(lb.Keys, lang, variantCode, layoutDesc);
-            ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
+            installDialog.Destroy();
         }
 
         public void Delete(object sender, EventArgs a)
