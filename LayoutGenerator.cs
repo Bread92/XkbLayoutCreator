@@ -29,7 +29,7 @@ class LayoutGenerator
 
         sb.AppendLine("default partial alphanumeric_keys modifier_keys");
         sb.AppendLine($"xkb_symbols \"{layout.Variant}\" {{");
-        sb.AppendLine($"  Name[Group1] = \"{layout.Desc}\";");
+        sb.AppendLine($"  name[Group1] = \"{layout.Desc}\";");
 
         foreach(var key in layout.Keys)
         {
@@ -72,7 +72,7 @@ class LayoutGenerator
         }
 
         if(altGr)
-            sb.AppendLine("\n  include \"level3(ralt_sbitch)\"");
+            sb.AppendLine("\n  include \"level3(ralt_switch)\"");
 
         sb.AppendLine("};");
 
