@@ -33,6 +33,9 @@ namespace LayoutMaker
         public Box rowBox5 = new(Orientation.Horizontal, 2);
         public Box checkboxes = new(Orientation.Horizontal, 2);
 
+        public Entry xkbPathEntry = new();
+        public Button xkbBrowseButton = new("Browse");
+
         public LayoutBuilder lb = new();
 
         public MainWindow() : base("Xkb Layout Creator")
@@ -95,6 +98,23 @@ namespace LayoutMaker
             checkboxes.PackStart(shiftCheck, false, false, 0);
             checkboxes.PackStart(altCheck, false, false, 0);
 
+            // XkbPath
+            Box xkbBox = new(Orientation.Horizontal, 5);
+
+            xkbPathEntry.Text = Directory.Exists(_symbolsPath)
+                ? _symbolsPath
+                : "Provide the path to xkb directory";
+
+            xkbPathEntry.IsEditable = false;
+            xkbPathEntry.Sensitive = false;
+            xkbPathEntry.CanFocus = false;
+            xkbPathEntry.Expand = true;
+
+            xkbBrowseButton.Clicked += OnBrowseXkbPath;
+
+            xkbBox.PackStart(xkbPathEntry, true, true, 5);
+            xkbBox.PackStart(xkbBrowseButton, false, false, 5);
+
             CreateButtonLayout();
             UpdateKeyLabels();
 
@@ -105,10 +125,30 @@ namespace LayoutMaker
             mainVbox.PackStart(rowBox4, false, false, 0);
             mainVbox.PackStart(rowBox5, false, false, 0);
             mainVbox.PackStart(checkboxes, false, false, 0);
+            mainVbox.PackStart(xkbBox, false, false, 5);
 
             Add(mainVbox);
             ShowAll();
             DeleteEvent += Exit;
+        }
+
+        void OnBrowseXkbPath(object sender, EventArgs e)
+        {
+            FileChooserDialog dialog = new(
+                    "Select xkb symbols folder",
+                    this,
+                    FileChooserAction.SelectFolder,
+                    "Cancel", ResponseType.Cancel,
+                    "Select", ResponseType.Accept
+                    );
+
+            if (dialog.Run() == (int)ResponseType.Accept)
+            {
+                xkbPathEntry.Text = dialog.Filename;
+                _symbolsPath = xkbPathEntry.Text;
+            }
+
+            dialog.Destroy();
         }
 
         private void Exit(object sender, DeleteEventArgs a) => Application.Quit();
@@ -140,7 +180,6 @@ namespace LayoutMaker
             {
                 _filePath = loadDialog.Filename;
                 lb.LoadLayout(_filePath);
-                Console.WriteLine($"Loaded file: {_filePath}");
             }
 
             UpdateKeyLabels();
@@ -194,7 +233,6 @@ namespace LayoutMaker
                 _filePath = saveDialog.Filename;
                 string fileText = CreateKlcFile();
                 System.IO.File.WriteAllText(_filePath, fileText);
-                Console.WriteLine($"Saved file: {_filePath}");
             }
 
             saveDialog.Destroy();
@@ -607,13 +645,24 @@ namespace LayoutMaker
                         rewriteDialog.ShowAll();
 
                         if ((ResponseType)rewriteDialog.Run() == ResponseType.Cancel)
+                        {
+                            rewriteDialog.Destroy();
+                            installDialog.Destroy();
                             return;
-
-                        manager.Install(lb.Keys, lang, variantCode, layoutDesc);
-                        ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
-
-                        rewriteDialog.Destroy();
+                        }
+                        else
+                        {
+                            manager.Delete(lang, variantCode);
+                            rewriteDialog.Destroy();
+                        }
                     }
+
+                    Console.WriteLine("Installing...");
+                    Layout layout = new(lb.Keys, lang, variantCode, layoutDesc);
+                    manager.Install(layout);
+
+                    Console.WriteLine("Finished!");
+                    ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
                 }
                 else
                 {

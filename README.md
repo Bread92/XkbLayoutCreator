@@ -1,7 +1,7 @@
 ## Xkb Layout Creator
 This is a simple UI application that allows you to create and install your own keyboard layout. It also can generate .xkb and .xml snippets if you want to add the layout manually.
 
-> [!DEPENDENCIES]
+> [DEPENDENCIES]
 > dotnet-runtime-10.0
 
 ### How to use
@@ -21,13 +21,13 @@ This is a simple UI application that allows you to create and install your own k
 > [!NOTE]
 > Alternatively, if you don't trust the App to touch your system files, use `Manage->Export` option to generate .xkb and .xml snippets for you to copy-paste and proceed with manual installation below.
 
-4. Logout/Reboot. Your layout should be accessible through your DE's Settings or using `setxkbmap`.
+4. Logout/Reboot. Your layout should be accessible through DE's Settings or using `setxkbmap`.
 
 ### Manual Installation
 > [!CAUTION]
 > The following files require root privileges to edit (sudo nano/vim). \
 > <b>! Backup your files before continuing !</b>
-1. Go to `symbols/` directory (`/usr/share/X11/xkb/symbols`), find the language, of which your layout is a variant of, and paste the .xkb snippet at the bottom. If your layout is not a variation of an existing language, use whichever you feel fits the best.
+1. In `xkb/symbols/` directory (usually `/usr/share/X11/xkb/symbols`), find the language, of which your layout is a variant of, and paste the .xkb snippet at the bottom. If your layout is not a variation of an existing language, use whichever you feel fits the best.
 
 #### Example (.xkb)
 > ```
@@ -44,7 +44,7 @@ This is a simple UI application that allows you to create and install your own k
 > <YOUR SNIPPET HERE>
 > ```
 2. In `xkb/rules/evdev.lst` add your variant's abbreviation and full name inside the `! variant` section.
-#### Example (Shavian)
+#### Example (.lst)
 > ```
 > ! variant
 >   shvn            us: Shavian    ;added this

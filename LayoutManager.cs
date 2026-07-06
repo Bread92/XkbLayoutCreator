@@ -6,6 +6,8 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+#pragma warning disable CS8632
+
 class LayoutManager
 {
     const string SymbolsPath = "/usr/share/X11/xkb/symbols/";
@@ -32,17 +34,16 @@ class LayoutManager
         return text.Contains($"// XKBLC {lang} {variant} start");
     }
 
-    public void Install(List<Key> keys, string lang, string variant, string desc)
+    public void Install(Layout layout)
     {
-        Lang = lang.ToLower();
-        Variant = variant.ToLower();
-        Desc = desc;
+        Lang = layout.Lang.ToLower();
+        Variant = layout.Variant.ToLower();
+        Desc = layout.Desc;
         DllPath = System.IO.Path.Combine($"{AppPath}/Elevated", "LayoutInstall.dll");
 
         BackupFiles();
 
         LayoutGenerator lg = new();
-        Layout layout = new(keys, Lang, Variant, Desc);
         lg.Generate(layout, "temp.xkb", "temp.xml");
 
         PrepXkb();
@@ -57,6 +58,10 @@ class LayoutManager
         Console.WriteLine(XmlTemp);
 
         WriteElevated();
+
+        File.Delete(XkbTemp);
+        File.Delete(LstTemp);
+        File.Delete(XmlTemp);
     }
 
     public void Delete(string lang, string variant)
@@ -165,7 +170,7 @@ class LayoutManager
 
     void PrepLst()
     {
-        const string tempName = "evdev.lst";
+        const string tempName = "temp.lst";
 
         var lines = File.ReadAllLines($"{RulesPath}/evdev.lst").ToList();
 
@@ -178,7 +183,7 @@ class LayoutManager
         LstTarget = $"{RulesPath}evdev.lst";
 
         string projectDir = AppContext.BaseDirectory;
-        LstTemp = $"{projectDir}../../../temp.lst";
+        LstTemp = $"{projectDir}../../../{tempName}";
 
         File.WriteAllLines(LstTemp, lines);
     }
@@ -188,7 +193,7 @@ class LayoutManager
         const string tempName = "temp.xml";
 
         string projectDir = AppContext.BaseDirectory;
-        XmlTemp = $"{projectDir}{tempName}";
+        XmlTemp = $"{projectDir}../../../{tempName}";
 
         File.Copy($"{RulesPath}/evdev.xml", XmlTemp, true);
 
