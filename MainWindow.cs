@@ -134,7 +134,7 @@ namespace LayoutMaker
 
         void OnBrowseXkbPath(object sender, EventArgs e)
         {
-            FileChooserDialog dialog = new(
+            using FileChooserDialog dialog = new(
                     "Select xkb symbols folder",
                     this,
                     FileChooserAction.SelectFolder,
@@ -147,8 +147,6 @@ namespace LayoutMaker
                 xkbPathEntry.Text = dialog.Filename;
                 _symbolsPath = xkbPathEntry.Text;
             }
-
-            dialog.Destroy();
         }
 
         private void Exit(object sender, DeleteEventArgs a) => Application.Quit();
@@ -165,7 +163,7 @@ namespace LayoutMaker
 
         private void LoadFile(object sender, EventArgs a)
         {
-            FileChooserDialog loadDialog = new("Select a file to load",
+            using FileChooserDialog loadDialog = new("Select a file to load",
                     this,
                     FileChooserAction.Open,
                     "Cancel", ResponseType.Cancel,
@@ -183,8 +181,6 @@ namespace LayoutMaker
             }
 
             UpdateKeyLabels();
-
-            loadDialog.Destroy();
         }
 
         private void SaveFile()
@@ -206,7 +202,7 @@ namespace LayoutMaker
 
         private void SaveFileAs()
         {
-            FileChooserDialog saveDialog = new("Save file as...",
+            using FileChooserDialog saveDialog = new("Save file as...",
                     this,
                     FileChooserAction.Save,
                     "Cancel", ResponseType.Cancel,
@@ -234,8 +230,6 @@ namespace LayoutMaker
                 string fileText = CreateKlcFile();
                 System.IO.File.WriteAllText(_filePath, fileText);
             }
-
-            saveDialog.Destroy();
         }
 
         private void SaveFileAs(object sender, EventArgs a) => SaveFileAs();
@@ -255,7 +249,7 @@ namespace LayoutMaker
 
         private void ShowExportDialog()
         {
-            Dialog exportDialog = new("Export Layout", this, DialogFlags.Modal);
+            using Dialog exportDialog = new("Export Layout", this, DialogFlags.Modal);
             exportDialog.AddButton("Cancel", ResponseType.Cancel);
             exportDialog.AddButton("OK", ResponseType.Accept);
 
@@ -311,13 +305,8 @@ namespace LayoutMaker
                     ShowDialog(MessageType.Info, "Files generated successfully!\nProceed to README file for further instructions");
                 }
                 else
-                {
-                    exportDialog.Destroy();
                     return;
-                }
             }
-
-            exportDialog.Destroy();
         }
 
         bool IsValidLang(string lang)
@@ -349,7 +338,7 @@ namespace LayoutMaker
         {
             var button = sender as Button;
             KeyCode keyCode = lb.GetKeyCodeByIndex(int.Parse(button.Name));
-            Dialog inputDialog = new(keyCode.ToString(), this, DialogFlags.Modal);
+            using Dialog inputDialog = new(keyCode.ToString(), this, DialogFlags.Modal);
             inputDialog.AddButton("Cancel", ResponseType.Cancel);
             inputDialog.AddButton("OK", ResponseType.Accept);
 
@@ -405,26 +394,20 @@ namespace LayoutMaker
                     }
                 }
                 else
-                {
-                    inputDialog.Destroy();
                     return;
-                }
             }
 
             UpdateKeyLabels();
-            inputDialog.Destroy();
         }
 
         private void ShowDialog(MessageType type, string text)
         {
-            var dialog = new MessageDialog(this,
+            using var dialog = new MessageDialog(this,
                     DialogFlags.Modal,
                     type,
                     ButtonsType.Ok,
                     text);
             dialog.Run();
-            dialog.Destroy();
-
         }
 
         private string ConvertUnicodeInput(string input)
@@ -581,7 +564,7 @@ namespace LayoutMaker
 
         void ShowInstallDialog()
         {
-            Dialog installDialog = new("Install Layout", this, DialogFlags.Modal);
+            using Dialog installDialog = new("Install Layout", this, DialogFlags.Modal);
             installDialog.AddButton("Cancel", ResponseType.Cancel);
             installDialog.AddButton("OK", ResponseType.Accept);
 
@@ -634,7 +617,7 @@ namespace LayoutMaker
 
                     if (manager.IsVariantPresent(lang, variantCode))
                     {
-                        Dialog rewriteDialog = new("Install", this, DialogFlags.Modal);
+                        using Dialog rewriteDialog = new("Install", this, DialogFlags.Modal);
                         rewriteDialog.AddButton("Cancel", ResponseType.Cancel);
                         rewriteDialog.AddButton("OK", ResponseType.Accept);
 
@@ -645,16 +628,9 @@ namespace LayoutMaker
                         rewriteDialog.ShowAll();
 
                         if ((ResponseType)rewriteDialog.Run() == ResponseType.Cancel)
-                        {
-                            rewriteDialog.Destroy();
-                            installDialog.Destroy();
                             return;
-                        }
                         else
-                        {
                             manager.Delete(lang, variantCode);
-                            rewriteDialog.Destroy();
-                        }
                     }
 
                     Console.WriteLine("Installing...");
@@ -665,18 +641,13 @@ namespace LayoutMaker
                     ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
                 }
                 else
-                {
-                    installDialog.Destroy();
                     return;
-                }
             }
-
-            installDialog.Destroy();
         }
 
         public void Delete(object sender, EventArgs a)
         {
-            Dialog deleteDialog = new("Delete", this, DialogFlags.Modal);
+            using Dialog deleteDialog = new("Delete", this, DialogFlags.Modal);
             deleteDialog.AddButton("Cancel", ResponseType.Cancel);
             deleteDialog.AddButton("OK", ResponseType.Accept);
 
@@ -731,13 +702,8 @@ namespace LayoutMaker
                     ShowDialog(MessageType.Info, "Layout deleted successfully!");
                 }
                 else
-                {
-                    deleteDialog.Destroy();
                     return;
-                }
             }
-
-            deleteDialog.Destroy();
         }
     }
 }
