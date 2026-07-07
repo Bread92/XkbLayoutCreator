@@ -266,8 +266,10 @@ class LayoutManager
                     l.Contains(Lang) &&
                     l.Contains($"XKBLC"));
 
-        lines.RemoveAt(index);
+        if(index < 0)
+            throw Exception("No XKBLC layout found in .lst, files might be corrupted. Use Backups directory to replace the broken file.);
 
+        lines.RemoveAt(index);
         LstTemp = $"{AppContext.BaseDirectory}../../../temp.lst";
         LstTarget = $"{RulesPath}/evdev.lst";
 
