@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>XkbLayoutCreator</AssemblyName>
+    <RootNamespace>XkbLayoutCreator</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
