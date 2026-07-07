@@ -1,15 +1,17 @@
+using Gtk;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.Collections.Generic;
-using Gtk;
+using System.Text.RegularExpressions;
 
 namespace LayoutMaker
 {
     class MainWindow : Window
     {
-        string _filePath = string.Empty;
+        string currentKlcPath = string.Empty;
         string _xkbPath = "/usr/share/X11/xkb";
         string _symbolsPath = "/usr/share/X11/xkb/symbols";
 
@@ -37,7 +39,7 @@ namespace LayoutMaker
         public Entry xkbPathEntry = new();
         public Button xkbBrowseButton = new("Browse");
 
-        public KlcLayoutManager lm = new();
+        public KlcManager lm = new();
 
         public MainWindow() : base("Xkb Layout Creator")
         {
@@ -76,7 +78,7 @@ namespace LayoutMaker
             load.Activated += LoadFile;
             export.Activated += ExportFile;
             install.Activated += Install;
-            delete.Activated += Delete;
+            delete.Activated += DeleteMenu;
             exit.Activated += ExitMenu;
 
             filemenu.Append(reset);
@@ -158,9 +160,9 @@ namespace LayoutMaker
 
         private void Reset(object sender, EventArgs a)
         {
-            lm = new KlcLayoutManager();
+            lm = new KlcManager();
 
-            _filePath = string.Empty;
+            currentKlcPath = string.Empty;
             UpdateKeyLabels();
         }
 
@@ -179,8 +181,8 @@ namespace LayoutMaker
 
             if (loadDialog.Run() == (int)ResponseType.Accept)
             {
-                _filePath = loadDialog.Filename;
-                lm.LoadLayout(_filePath);
+                currentKlcPath = loadDialog.Filename;
+                lm.LoadLayout(currentKlcPath);
             }
 
             UpdateKeyLabels();
@@ -188,14 +190,14 @@ namespace LayoutMaker
 
         private void SaveFile()
         {
-            if(_filePath == string.Empty)
+            if(currentKlcPath == string.Empty)
             {
                 SaveFileAs();
                 return;
             }
 
             string fileText = CreateKlcFile();
-            System.IO.File.WriteAllText(_filePath, fileText);
+            System.IO.File.WriteAllText(currentKlcPath, fileText);
         }
 
         private void SaveFile(object sender, EventArgs a)
@@ -216,22 +218,22 @@ namespace LayoutMaker
             filter.AddPattern("*.klc");
             saveDialog.AddFilter(filter);
 
-            if(_filePath == string.Empty)
+            if(currentKlcPath == string.Empty)
             {
                 saveDialog.CurrentName="my_layout.klc";
             }
             else
             {
                 // Collision with Widget.Path
-                string fileName = System.IO.Path.GetFileName(_filePath);
+                string fileName = System.IO.Path.GetFileName(currentKlcPath);
                 saveDialog.CurrentName=fileName;
             }
 
             if (saveDialog.Run() == (int)ResponseType.Accept)
             {
-                _filePath = saveDialog.Filename;
+                currentKlcPath = saveDialog.Filename;
                 string fileText = CreateKlcFile();
-                System.IO.File.WriteAllText(_filePath, fileText);
+                System.IO.File.WriteAllText(currentKlcPath, fileText);
             }
         }
 
@@ -239,12 +241,12 @@ namespace LayoutMaker
 
         private void ExportFile(object sender, EventArgs a)
         {
-            if(_filePath == string.Empty)
+            if(currentKlcPath == string.Empty)
             {
                 SaveFile();
             }
 
-            if(_filePath == string.Empty)
+            if(currentKlcPath == string.Empty)
                 return;
 
             ShowExportDialog();
@@ -642,6 +644,9 @@ namespace LayoutMaker
                     manager.Install(layout);
 
                     Console.WriteLine("Finished!");
+
+                    StoreInstalled(layout);
+
                     ShowDialog(MessageType.Info, "Layout installed successfully! Logout to apply changes");
                 }
                 else
@@ -649,64 +654,119 @@ namespace LayoutMaker
             }
         }
 
-        public void Delete(object sender, EventArgs a)
+        public void DeleteMenu(object sender, EventArgs a)
         {
-            using Dialog deleteDialog = new("Delete", this, DialogFlags.Modal);
-            deleteDialog.AddButton("Cancel", ResponseType.Cancel);
-            deleteDialog.AddButton("OK", ResponseType.Accept);
+            List<string> layouts = GetInstalledLayouts();
 
-            Box deleteBox = new(Orientation.Vertical, 5);
+            using Dialog dialog = new Dialog(
+                    "Delete Layout",
+                    this,
+                    DialogFlags.Modal
+                    );
 
-            Label langLabel = new("Language Code [us, ru, de, cz]:");
-            Entry langEntry = new();
+            dialog.SetDefaultSize(400, 300);
+            dialog.SetPosition(WindowPosition.Center);
 
-            Label variantLabel = new("Variant's Code [Shavian -> shvn]:");
-            Entry variantEntry = new();
+            Box content = dialog.ContentArea;
 
-            deleteBox.PackStart(langLabel, false, false, 0);
-            deleteBox.PackStart(langEntry, false, false, 5);
-            deleteBox.PackStart(variantLabel, false, false, 0);
-            deleteBox.PackStart(variantEntry, false, false, 5);
+            TreeView list = new TreeView();
+            ListStore store = new ListStore(typeof(string));
 
-            deleteDialog.ContentArea.PackStart(deleteBox, true, true, 0);
-            deleteDialog.ShowAll();
+            foreach (string layout in layouts)
+                store.AppendValues(layout);
 
-            bool validInput = false;
+            list.Model = store;
 
-            while(!validInput)
+            TreeViewColumn column = new TreeViewColumn
             {
-                if (deleteDialog.Run() == (int)ResponseType.Accept)
+                Title = "Installed Layouts"
+            };
+
+            CellRendererText renderer = new CellRendererText();
+            column.PackStart(renderer, true);
+            column.AddAttribute(renderer, "text", 0);
+
+            list.AppendColumn(column);
+
+            ScrolledWindow scroll = new ScrolledWindow();
+            scroll.Add(list);
+
+            content.PackStart(scroll, true, true, 5);
+
+            Button deleteButton = (Button)dialog.AddButton("Delete", ResponseType.Accept);
+            dialog.AddButton("Done", ResponseType.Cancel);
+
+            deleteButton.Sensitive = layouts.Count > 0;
+
+            dialog.ShowAll();
+
+            if (dialog.Run() == (int)ResponseType.Accept)
+            {
+                if (list.Selection.GetSelected(out TreeIter iter))
                 {
-                    string lang = langEntry.Text;
-                    string variantCode = variantEntry.Text;
+                    string layout = (string)store.GetValue(iter, 0);
 
-                    if (string.IsNullOrWhiteSpace(lang) ||
-                            string.IsNullOrWhiteSpace(variantCode))
-                    {
-                        ShowDialog(MessageType.Warning, "One of the fields is empty!");
-                        continue;
-                    }
-                    if(!IsValidLang(lang))
-                    {
-                        ShowDialog(MessageType.Warning, "This Language doesn't exist!");
-                        continue;
-                    }
-                    // Check if it's generated by XKBLC
-                    string text = File.ReadAllText($"{_symbolsPath}{lang}");
-                    if(!text.Contains($"XKBLC {lang} {variantCode}"))
-                    {
-                        ShowDialog(MessageType.Warning, "This layout either a system layout or does not exist. Can't delete");
-                        continue;
-                    }
+                    Console.WriteLine(layout);
 
-                    validInput = true;
+                    var match = Regex.Match(layout, @"\[(.*?):\s*(.*?)\]");
 
-                    LayoutManager manager = new(_xkbPath);
-                    manager.Delete(lang, variantCode);
-                    ShowDialog(MessageType.Info, "Layout deleted successfully!");
+                    if (match.Success)
+                    {
+                        string lang = match.Groups[1].Value;
+                        string variant = match.Groups[2].Value;
+
+                        Console.WriteLine(lang);
+                        Console.WriteLine(variant);
+
+                        LayoutManager lm = new(_xkbPath);
+
+                        lm.Delete(lang, variant);
+
+                        string[] lines = File.ReadAllLines("installed.info");
+
+                        lines = lines
+                            .Where(line => line != layout)
+                            .ToArray();
+
+                        File.WriteAllLines("installed.info", lines);
+                    }
                 }
-                else
-                    return;
+            }
+        }
+
+        List<string> GetInstalledLayouts()
+        {
+            if(!File.Exists("installed.info"))
+                return new List<string>();
+
+            List<string> layouts = new();
+
+            var infoLines = File.ReadAllLines("installed.info");
+
+            for (int i = 1; i < infoLines.Length; i++)
+            {
+                layouts.Add(infoLines[i]);
+            }
+
+            return layouts;
+        }
+
+        void StoreInstalled(Layout layout)
+        {
+            if (!File.Exists("installed.info"))
+            {
+                File.WriteAllText(
+                        "installed.info",
+                        "# This file is used to track layouts installed by XKBLC.\n"
+                        );
+            }
+
+            if(!File.ReadAllText("installed.info").Contains($"{layout.Lang}: {layout.Variant}"))
+            {
+                File.AppendAllText(
+                        "installed.info",
+                        $"{layout.Desc} [{layout.Lang}: {layout.Variant}]\n"
+                        );
             }
         }
     }
