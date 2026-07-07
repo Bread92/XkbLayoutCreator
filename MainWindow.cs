@@ -10,7 +10,8 @@ namespace LayoutMaker
     class MainWindow : Window
     {
         string _filePath = string.Empty;
-        string _symbolsPath = "/usr/share/X11/xkb/symbols/";
+        string _xkbPath = "/usr/share/X11/xkb";
+        string _symbolsPath = "/usr/share/X11/xkb/symbols";
 
         public List<List<Button>> buttons = new();
         public List<Button> Row1 = new();
@@ -36,10 +37,11 @@ namespace LayoutMaker
         public Entry xkbPathEntry = new();
         public Button xkbBrowseButton = new("Browse");
 
-        public LayoutBuilder lb = new();
+        public KlcLayoutManager lm = new();
 
         public MainWindow() : base("Xkb Layout Creator")
         {
+            Resizable = false;
             SetDefaultSize(700, 200);
             SetPosition(WindowPosition.Center);
 
@@ -101,9 +103,9 @@ namespace LayoutMaker
             // XkbPath
             Box xkbBox = new(Orientation.Horizontal, 5);
 
-            xkbPathEntry.Text = Directory.Exists(_symbolsPath)
-                ? _symbolsPath
-                : "Provide the path to xkb directory";
+            xkbPathEntry.Text = Directory.Exists(_xkbPath)
+                ? _xkbPath
+                : "Xkb directory not found. Provide the path to xkb directory";
 
             xkbPathEntry.IsEditable = false;
             xkbPathEntry.Sensitive = false;
@@ -125,7 +127,7 @@ namespace LayoutMaker
             mainVbox.PackStart(rowBox4, false, false, 0);
             mainVbox.PackStart(rowBox5, false, false, 0);
             mainVbox.PackStart(checkboxes, false, false, 0);
-            mainVbox.PackStart(xkbBox, false, false, 5);
+            mainVbox.PackEnd(xkbBox, false, false, 5);
 
             Add(mainVbox);
             ShowAll();
@@ -145,7 +147,8 @@ namespace LayoutMaker
             if (dialog.Run() == (int)ResponseType.Accept)
             {
                 xkbPathEntry.Text = dialog.Filename;
-                _symbolsPath = xkbPathEntry.Text;
+                _xkbPath = xkbPathEntry.Text;
+                _symbolsPath = _xkbPath + "/symbols";
             }
         }
 
@@ -155,7 +158,7 @@ namespace LayoutMaker
 
         private void Reset(object sender, EventArgs a)
         {
-            lb = new LayoutBuilder();
+            lm = new KlcLayoutManager();
 
             _filePath = string.Empty;
             UpdateKeyLabels();
@@ -177,7 +180,7 @@ namespace LayoutMaker
             if (loadDialog.Run() == (int)ResponseType.Accept)
             {
                 _filePath = loadDialog.Filename;
-                lb.LoadLayout(_filePath);
+                lm.LoadLayout(_filePath);
             }
 
             UpdateKeyLabels();
@@ -299,7 +302,7 @@ namespace LayoutMaker
 
                     validInput = true;
                     LayoutGenerator lg = new();
-                    Layout layout = new(lb.Keys, lang, variantCode, layoutDesc);
+                    Layout layout = new(lm.Keys, lang, variantCode, layoutDesc);
                     lg.Generate(layout);
 
                     ShowDialog(MessageType.Info, "Files generated successfully!\nProceed to README file for further instructions");
@@ -316,6 +319,7 @@ namespace LayoutMaker
 
             // Collision with Widget.Path
             string path = System.IO.Path.Combine(_symbolsPath, lang);
+            Console.WriteLine(path);
 
             return File.Exists(path);
         }
@@ -323,21 +327,21 @@ namespace LayoutMaker
         void OnShiftToggled(object sender, EventArgs args)
         {
             CheckButton cb = (CheckButton) sender;
-            lb.IsShift = cb.Active;
+            lm.IsShift = cb.Active;
             UpdateKeyLabels();
         }
 
         void OnAltToggled(object sender, EventArgs args)
         {
             CheckButton cb = (CheckButton) sender;
-            lb.IsAlt = cb.Active;
+            lm.IsAlt = cb.Active;
             UpdateKeyLabels();
         }
 
         private void OnButtonClicked(object sender, EventArgs e)
         {
             var button = sender as Button;
-            KeyCode keyCode = lb.GetKeyCodeByIndex(int.Parse(button.Name));
+            KeyCode keyCode = lm.GetKeyCodeByIndex(int.Parse(button.Name));
             using Dialog inputDialog = new(keyCode.ToString(), this, DialogFlags.Modal);
             inputDialog.AddButton("Cancel", ResponseType.Cancel);
             inputDialog.AddButton("OK", ResponseType.Accept);
@@ -361,7 +365,7 @@ namespace LayoutMaker
                     if (string.IsNullOrEmpty(userInput))
                     {
                         preferredCharacter = "NoSymbol";
-                        lb.SetKey(keyCode, preferredCharacter);
+                        lm.SetKey(keyCode, preferredCharacter);
                         validInput = true;
                     }
                     else if ((userInput.StartsWith("U+") || userInput.StartsWith("U")) && userInput.Length > 1)
@@ -373,7 +377,7 @@ namespace LayoutMaker
                         if (converted != null && converted != "?")
                         {
                             preferredCharacter = converted;
-                            lb.SetKey(keyCode, userInput);
+                            lm.SetKey(keyCode, userInput);
                             validInput = true;
                         }
                         else
@@ -384,7 +388,7 @@ namespace LayoutMaker
                     else if (userInput.Length == 1)
                     {
                         preferredCharacter = userInput;
-                        lb.SetKey(keyCode, preferredCharacter);
+                        lm.SetKey(keyCode, preferredCharacter);
                         validInput = true;
                     }
                     else
@@ -540,10 +544,10 @@ namespace LayoutMaker
 
         private string GetKeyLabel(int index)
         {
-            if(!lb.IsShift && !lb.IsAlt)     return lb.Keys[index].Normal;
-            else if(lb.IsShift && !lb.IsAlt) return lb.Keys[index].Shift;
-            else if(!lb.IsShift && lb.IsAlt) return lb.Keys[index].Alt;
-            else if(lb.IsShift && lb.IsAlt)  return lb.Keys[index].ShiftAlt;
+            if(!lm.IsShift && !lm.IsAlt)     return lm.Keys[index].Normal;
+            else if(lm.IsShift && !lm.IsAlt) return lm.Keys[index].Shift;
+            else if(!lm.IsShift && lm.IsAlt) return lm.Keys[index].Alt;
+            else if(lm.IsShift && lm.IsAlt)  return lm.Keys[index].ShiftAlt;
             else                             return "[]";
         }
 
@@ -551,7 +555,7 @@ namespace LayoutMaker
         {
             StringBuilder sb = new();
 
-            foreach(var key in lb.Keys)
+            foreach(var key in lm.Keys)
                 sb.AppendLine(key.ToKlcString());
 
             return sb.ToString();
@@ -613,7 +617,7 @@ namespace LayoutMaker
 
                     validInput = true;
 
-                    LayoutManager manager = new();
+                    LayoutManager manager = new(_xkbPath);
 
                     if (manager.IsVariantPresent(lang, variantCode))
                     {
@@ -634,7 +638,7 @@ namespace LayoutMaker
                     }
 
                     Console.WriteLine("Installing...");
-                    Layout layout = new(lb.Keys, lang, variantCode, layoutDesc);
+                    Layout layout = new(lm.Keys, lang, variantCode, layoutDesc);
                     manager.Install(layout);
 
                     Console.WriteLine("Finished!");
@@ -697,7 +701,7 @@ namespace LayoutMaker
 
                     validInput = true;
 
-                    LayoutManager manager = new();
+                    LayoutManager manager = new(_xkbPath);
                     manager.Delete(lang, variantCode);
                     ShowDialog(MessageType.Info, "Layout deleted successfully!");
                 }

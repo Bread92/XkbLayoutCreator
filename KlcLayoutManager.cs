@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 
-class LayoutBuilder
+class KlcLayoutManager
 {
     public bool IsShift { get; set; } = false;
     public bool IsAlt { get; set; } = false;
 
     public List<Key> Keys = new();
 
-    public LayoutBuilder()
+    public KlcLayoutManager()
     {
         foreach(string[] keyValues in DefaultLayout)
         {
