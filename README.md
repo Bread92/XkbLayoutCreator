@@ -1,12 +1,12 @@
 ## Xkb Layout Creator
 This is a simple UI application that allows you to create and install your own keyboard layout. It also can generate .xkb and .xml snippets if you want to add the layout manually.
 
-> [DEPENDENCIES]
-> Development: `dotnet-sdk-10.0`
+> [DEPENDENCIES] \
+> Development: `dotnet-sdk-10.0` \
 > Release: `dotnet-runtime-10.0`
 
-> [BUILD]
-> This project can be built and launched using older versions of dotnet, down to dotnet8.
+> [BUILD] \
+> This project can be built and launched using older versions of dotnet, down to dotnet6. \
 > After building for proper behavior move the `Elevated/` directory to `bin/Debug/net*` since it expects to have this folder beside the executable.
 
 ### How to use

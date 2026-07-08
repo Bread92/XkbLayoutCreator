@@ -785,6 +785,8 @@ namespace LayoutMaker
                         $"{AppPath}installed.info",
                         "# This file is used to track layouts installed by XKBLC.\n"
                         );
+            
+                File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
             }
 
             string infoText = File.ReadAllText($"{AppPath}installed.info");
