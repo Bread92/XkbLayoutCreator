@@ -707,35 +707,45 @@ namespace LayoutMaker
 
             dialog.ShowAll();
 
-            if (dialog.Run() == (int)ResponseType.Accept)
+            bool done = false;
+
+            while(!done)
             {
-                if (list.Selection.GetSelected(out TreeIter iter))
+                if (dialog.Run() == (int)ResponseType.Accept)
                 {
-                    string layout = (string)store.GetValue(iter, 0);
-
-                    var match = Regex.Match(layout, @"\[(.*?):\s*(.*?)\]");
-
-                    if (match.Success)
+                    if (list.Selection.GetSelected(out TreeIter iter))
                     {
-                        string lang = match.Groups[1].Value;
-                        string variant = match.Groups[2].Value;
+                        string layout = (string)store.GetValue(iter, 0);
 
-                        LayoutManager lm = new(_xkbPath);
+                        var match = Regex.Match(layout, @"\[(.*?):\s*(.*?)\]");
 
-                        lm.Delete(lang, variant);
+                        if (match.Success)
+                        {
+                            string lang = match.Groups[1].Value;
+                            string variant = match.Groups[2].Value;
 
-                        string AppPath = AppContext.BaseDirectory;
-                        string[] lines = File.ReadAllLines($"{AppPath}installed.info");
+                            LayoutManager lm = new(_xkbPath);
 
-                        lines = lines
-                            .Where(line => line != layout)
-                            .ToArray();
+                            lm.Delete(lang, variant);
 
-                        File.SetAttributes($"{AppPath}installed.info", FileAttributes.Normal);
-                        File.WriteAllLines($"{AppPath}installed.info", lines);
-                        File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
+                            string AppPath = AppContext.BaseDirectory;
+                            string[] lines = File.ReadAllLines($"{AppPath}installed.info");
+
+                            lines = lines
+                                .Where(line => line != layout)
+                                .ToArray();
+
+                            File.SetAttributes($"{AppPath}installed.info", FileAttributes.Normal);
+                            File.WriteAllLines($"{AppPath}installed.info", lines);
+                            File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
+                            // Update UI
+                            store.Remove(ref iter);
+                            deleteButton.Sensitive = store.IterNChildren() > 0;
+                        }
                     }
                 }
+                else
+                    done = true;
             }
         }
 
