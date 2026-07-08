@@ -6,7 +6,7 @@ This is a simple UI application that allows you to create and install your own k
 > Release: `dotnet-runtime-10.0`
 
 > [BUILD] \
-> This project can be built and launched using older versions of dotnet, down to dotnet8. \
+> This project can be built and launched using older versions of dotnet, down to dotnet6. \
 > After building for proper behavior move the `Elevated/` directory to `bin/Debug/net*` since it expects to have this folder beside the executable.
 
 ### How to use
