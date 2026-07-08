@@ -12,8 +12,7 @@ class LayoutManager
 {
     string SymbolsPath = "/usr/share/X11/xkb/symbols";
     string RulesPath = "/usr/share/X11/xkb/rules";
-
-    string AppPath = AppContext.BaseDirectory;
+    string AppPath = string.Empty;
     string DllPath = string.Empty;
 
     string XkbTarget = string.Empty;
@@ -31,6 +30,8 @@ class LayoutManager
     {
         SymbolsPath = System.IO.Path.Combine(xkbPath, "symbols");
         RulesPath = System.IO.Path.Combine(xkbPath, "rules");
+        AppPath = AppContext.BaseDirectory;
+        DllPath = System.IO.Path.Combine($"{AppPath}/Elevated", "LayoutInstall.dll");
     }
 
     public bool IsVariantPresent(string lang, string variant)
@@ -45,7 +46,6 @@ class LayoutManager
         Lang = layout.Lang.ToLower();
         Variant = layout.Variant.ToLower();
         Desc = layout.Desc;
-        DllPath = System.IO.Path.Combine($"{AppPath}/Elevated", "LayoutInstall.dll");
 
         BackupFiles();
 
@@ -135,21 +135,20 @@ class LayoutManager
             }
         }
 
-        File.WriteAllLines("temp.xkb", output);
+        File.WriteAllLines($"{AppPath}temp.xkb", output);
 
         string projectDir = AppContext.BaseDirectory;
-        XkbTemp = $"{projectDir}../../../temp.xkb";
+        XkbTemp = $"{AppPath}temp.xkb";
     }
 
     void PrepXkb()
     {
         const string tempName = "temp.xkb";
-        string projectDir = AppContext.BaseDirectory;
 
         StringBuilder sb = new();
 
         if(XkbTemp == string.Empty)
-            XkbTemp = $"{projectDir}../../../{tempName}";
+            XkbTemp = $"{AppPath}{tempName}";
 
         sb.Append(File.ReadAllText($"{SymbolsPath}/{Lang}"));
 
@@ -166,16 +165,11 @@ class LayoutManager
 
         File.WriteAllText(XkbTemp, sb.ToString());
 
-        Console.WriteLine($"\nprojectDir = {projectDir}\n");
-        Console.WriteLine("XkbTemp = " + XkbTemp);
-
         XkbTarget = $"{SymbolsPath}/{Lang}";
     }
 
     void PrepLst()
     {
-        const string tempName = "temp.lst";
-
         var lines = File.ReadAllLines($"{RulesPath}/evdev.lst").ToList();
 
         string insertLine = $"{Variant}\t\t{Lang}: {Desc}";
@@ -186,18 +180,14 @@ class LayoutManager
 
         LstTarget = $"{RulesPath}/evdev.lst";
 
-        string projectDir = AppContext.BaseDirectory;
-        LstTemp = $"{projectDir}../../../{tempName}";
+        LstTemp = $"{AppPath}temp.lst";
 
         File.WriteAllLines(LstTemp, lines);
     }
 
     void PrepXml()
     {
-        const string tempName = "temp.xml";
-
-        string projectDir = AppContext.BaseDirectory;
-        XmlTemp = $"{projectDir}../../../{tempName}";
+        XmlTemp = $"{AppPath}temp.xml";
 
         File.Copy($"{RulesPath}/evdev.xml", XmlTemp, true);
 
@@ -231,8 +221,7 @@ class LayoutManager
 
     void PrepDeleteXml()
     {
-        string projectDir = AppContext.BaseDirectory;
-        XmlTemp = $"{projectDir}temp.xml";
+        XmlTemp = $"{AppPath}temp.xml";
 
         File.Copy($"{RulesPath}/evdev.xml", XmlTemp, true);
 
@@ -267,10 +256,10 @@ class LayoutManager
                     l.Contains($"XKBLC"));
 
         if(index < 0)
-            throw Exception("No XKBLC layout found in .lst, files might be corrupted. Use Backups directory to replace the broken file.);
+            throw new Exception("No XKBLC layout found in .lst, files might be corrupted. Use Backups directory to replace the broken file.");
 
         lines.RemoveAt(index);
-        LstTemp = $"{AppContext.BaseDirectory}../../../temp.lst";
+        LstTemp = $"{AppPath}temp.lst";
         LstTarget = $"{RulesPath}/evdev.lst";
 
         File.WriteAllLines(LstTemp, lines);
@@ -298,8 +287,7 @@ class LayoutManager
 
     void BackupFiles()
     {
-        string projectDir = AppContext.BaseDirectory;
-        string backupDir = Path.Combine(projectDir, "Backups");
+        string backupDir = Path.Combine(AppPath, "Backups");
 
         Directory.CreateDirectory(backupDir);
         Directory.CreateDirectory(Path.Combine(backupDir, "symbols"));

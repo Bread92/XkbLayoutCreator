@@ -7,6 +7,8 @@ using System;
 
 class LayoutGenerator
 {
+    string AppPath = AppContext.BaseDirectory;
+
     public void Generate(Layout layout)
     {
         string defaultXkbName = $"{layout.Lang}_{layout.Variant}.xkb";
@@ -17,8 +19,8 @@ class LayoutGenerator
 
     public void Generate(Layout layout, string xkbName, string xmlName)
     {
-        File.WriteAllText(xkbName, GenerateXkb(layout));
-        File.WriteAllText(xmlName, GenerateXml(layout));
+        File.WriteAllText($"{AppPath}{xkbName}", GenerateXkb(layout));
+        File.WriteAllText($"{AppPath}{xmlName}", GenerateXml(layout));
     }
 
     public string GenerateXkb(Layout layout)

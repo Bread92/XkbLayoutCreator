@@ -1,7 +1,2 @@
 bin/
 obj/
-*.klc
-*.xml
-*.xkb
-todo
-installed.info

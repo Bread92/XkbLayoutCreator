@@ -175,8 +175,8 @@ namespace LayoutMaker
                     "Open", ResponseType.Accept);
 
             FileFilter filter = new();
-            filter.Name = "KLC files";
-            filter.AddPattern("*.klc");
+            filter.Name = "XKBLC files";
+            filter.AddPattern("*.xkblc");
             loadDialog.AddFilter(filter);
 
             if (loadDialog.Run() == (int)ResponseType.Accept)
@@ -214,13 +214,13 @@ namespace LayoutMaker
                     "Save", ResponseType.Accept);
 
             FileFilter filter = new();
-            filter.Name = "KLC files";
-            filter.AddPattern("*.klc");
+            filter.Name = "XKBLC files";
+            filter.AddPattern("*.xkblc");
             saveDialog.AddFilter(filter);
 
             if(currentKlcPath == string.Empty)
             {
-                saveDialog.CurrentName="my_layout.klc";
+                saveDialog.CurrentName="my_layout.xkblc";
             }
             else
             {
@@ -722,13 +722,13 @@ namespace LayoutMaker
 
                         lm.Delete(lang, variant);
 
-                        string[] lines = File.ReadAllLines("installed.info");
+                        string[] lines = File.ReadAllLines($"{AppContext.BaseDirectory}installed.info");
 
                         lines = lines
                             .Where(line => line != layout)
                             .ToArray();
 
-                        File.WriteAllLines("installed.info", lines);
+                        File.WriteAllLines($"{AppContext.BaseDirectory}installed.info", lines);
                     }
                 }
             }
@@ -736,12 +736,14 @@ namespace LayoutMaker
 
         List<string> GetInstalledLayouts()
         {
-            if(!File.Exists("installed.info"))
+            string AppPath = AppContext.BaseDirectory;
+
+            if(!File.Exists($"{AppPath}installed.info"))
                 return new List<string>();
 
             List<string> layouts = new();
 
-            var infoLines = File.ReadAllLines("installed.info");
+            var infoLines = File.ReadAllLines($"{AppPath}installed.info");
 
             for (int i = 1; i < infoLines.Length; i++)
             {
@@ -753,20 +755,25 @@ namespace LayoutMaker
 
         void StoreInstalled(Layout layout)
         {
-            if (!File.Exists("installed.info"))
+            string AppPath = AppContext.BaseDirectory;
+
+            if (!File.Exists($"{AppPath}installed.info"))
             {
                 File.WriteAllText(
-                        "installed.info",
+                        $"{AppPath}installed.info",
                         "# This file is used to track layouts installed by XKBLC.\n"
                         );
+                File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
             }
 
-            if(!File.ReadAllText("installed.info").Contains($"{layout.Lang}: {layout.Variant}"))
+            if(!File.ReadAllText($"{AppPath}installed.info").Contains($"{layout.Lang}: {layout.Variant}"))
             {
+                File.SetAttributes($"{AppPath}installed.info", FileAttributes.Normal);
                 File.AppendAllText(
-                        "installed.info",
+                        $"{AppPath}installed.info",
                         $"{layout.Desc} [{layout.Lang}: {layout.Variant}]\n"
                         );
+                File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
             }
         }
     }
