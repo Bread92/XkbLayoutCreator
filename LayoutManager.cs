@@ -247,8 +247,7 @@ class LayoutManager
     {
         var lines = File.ReadAllLines($"{RulesPath}/evdev.lst").ToList();
 
-        int index = lines.FindIndex(l => l.Contains(Variant) &&
-                    l.Contains(Lang) &&
+        int index = lines.FindIndex(l => l.Contains($"{Variant} {Lang}") &&
                     l.Contains($"XKBLC"));
 
         if(index < 0)
