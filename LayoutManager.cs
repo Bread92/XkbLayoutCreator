@@ -99,11 +99,7 @@ class LayoutManager
         XkbTarget = $"{SymbolsPath}/{Lang}";
 
         if (!File.Exists(XkbTarget))
-        {
-            Console.WriteLine("File doesn't exist");
-            Console.WriteLine($"Provided Path: {XkbTarget}");
             return;
-        }
 
         string startMarker = $"// XKBLC {Lang} {Variant} start";
         string endMarker = "// XKBLC end";

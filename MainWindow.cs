@@ -321,7 +321,6 @@ namespace LayoutMaker
 
             // Collision with Widget.Path
             string path = System.IO.Path.Combine(_symbolsPath, lang);
-            Console.WriteLine(path);
 
             return File.Exists(path);
         }
@@ -617,6 +616,12 @@ namespace LayoutMaker
                         continue;
                     }
 
+                    if (IsSystemLang(lang, variantCode))
+                    {
+                        ShowDialog(MessageType.Warning, "System layout with such Variant name already exists.");
+                        continue;
+                    }
+
                     validInput = true;
 
                     LayoutManager manager = new(_xkbPath);
@@ -639,11 +644,8 @@ namespace LayoutMaker
                             manager.Delete(lang, variantCode);
                     }
 
-                    Console.WriteLine("Installing...");
                     Layout layout = new(lm.Keys, lang, variantCode, layoutDesc);
                     manager.Install(layout);
-
-                    Console.WriteLine("Finished!");
 
                     StoreInstalled(layout);
 
@@ -706,17 +708,12 @@ namespace LayoutMaker
                 {
                     string layout = (string)store.GetValue(iter, 0);
 
-                    Console.WriteLine(layout);
-
                     var match = Regex.Match(layout, @"\[(.*?):\s*(.*?)\]");
 
                     if (match.Success)
                     {
                         string lang = match.Groups[1].Value;
                         string variant = match.Groups[2].Value;
-
-                        Console.WriteLine(lang);
-                        Console.WriteLine(variant);
 
                         LayoutManager lm = new(_xkbPath);
 
@@ -775,6 +772,30 @@ namespace LayoutMaker
                         );
                 File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
             }
+        }
+
+        bool IsSystemLang(string lang, string variant)
+        {
+            string AppPath = AppContext.BaseDirectory;
+            string xkbText = File.ReadAllText($"{_symbolsPath}/{lang}");
+
+            if(!File.Exists($"{AppPath}installed.info"))
+            {
+                File.WriteAllText(
+                        $"{AppPath}installed.info",
+                        "# This file is used to track layouts installed by XKBLC.\n"
+                        );
+            }
+
+            string infoText = File.ReadAllText($"{AppPath}installed.info");
+
+            if(xkbText.Contains($"xkb_symbols \"{variant}\"") &&
+                    !infoText.Contains($"[{lang}: {variant}]"))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
