@@ -164,6 +164,8 @@ namespace LayoutMaker
 
             currentKlcPath = string.Empty;
             UpdateKeyLabels();
+
+            this.Title = "Xkb Layout Creator";
         }
 
         private void LoadFile(object sender, EventArgs a)
@@ -183,6 +185,7 @@ namespace LayoutMaker
             {
                 currentKlcPath = loadDialog.Filename;
                 lm.LoadLayout(currentKlcPath);
+                this.Title = $"Xkb Layout Creator - {System.IO.Path.GetFileName(currentKlcPath)}";
             }
 
             UpdateKeyLabels();
@@ -198,6 +201,7 @@ namespace LayoutMaker
 
             string fileText = CreateKlcFile();
             System.IO.File.WriteAllText(currentKlcPath, fileText);
+            this.Title = $"Xkb Layout Creator - {System.IO.Path.GetFileName(currentKlcPath)}";
         }
 
         private void SaveFile(object sender, EventArgs a)
@@ -226,7 +230,7 @@ namespace LayoutMaker
             {
                 // Collision with Widget.Path
                 string fileName = System.IO.Path.GetFileName(currentKlcPath);
-                saveDialog.CurrentName=fileName;
+                saveDialog.CurrentName = fileName;
             }
 
             if (saveDialog.Run() == (int)ResponseType.Accept)
@@ -234,6 +238,7 @@ namespace LayoutMaker
                 currentKlcPath = saveDialog.Filename;
                 string fileText = CreateKlcFile();
                 System.IO.File.WriteAllText(currentKlcPath, fileText);
+                this.Title = $"Xkb Layout Creator - {System.IO.Path.GetFileName(currentKlcPath)}";
             }
         }
 
@@ -719,13 +724,16 @@ namespace LayoutMaker
 
                         lm.Delete(lang, variant);
 
-                        string[] lines = File.ReadAllLines($"{AppContext.BaseDirectory}installed.info");
+                        string AppPath = AppContext.BaseDirectory;
+                        string[] lines = File.ReadAllLines($"{AppPath}installed.info");
 
                         lines = lines
                             .Where(line => line != layout)
                             .ToArray();
 
-                        File.WriteAllLines($"{AppContext.BaseDirectory}installed.info", lines);
+                        File.SetAttributes($"{AppPath}installed.info", FileAttributes.Normal);
+                        File.WriteAllLines($"{AppPath}installed.info", lines);
+                        File.SetAttributes($"{AppPath}installed.info", FileAttributes.ReadOnly);
                     }
                 }
             }
