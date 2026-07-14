@@ -7,10 +7,10 @@ This is a simple UI application that allows you to create and install your own k
 
 > [BUILD] \
 > This project can be built and launched using older versions of dotnet, down to dotnet6. \
-> After building for proper behavior move the `Elevated/` directory to `bin/Debug/net*` since it expects to have this folder beside the executable.
+> After building for proper behavior move the `Elevated/` directory to `bin/Debug/net*` since it expects to have this directory beside the executable.
 
 ### How to use
-1. Click on the key you want to change and copy-paste/type the desired character in the opened dialog window. U#### and U+#### notation is supported.
+1. Click on the key you want to change and copy-paste/type the desired character in the opened dialog window. U####/U+#### notation is supported.
 2. To not lose your layout use `File->Save`. App will create a .xkblc file, which you can load later via `File->Load`.
 3. Use `Manage->Install` to automatically add current layout to the system.
 

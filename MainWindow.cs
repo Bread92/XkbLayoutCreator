@@ -501,18 +501,16 @@ namespace LayoutMaker
            {
                string keyLabel = GetKeyLabel(keyIndex);
 
-               if (keyLabel != "NoSymbol")
-               {
-                   Button newButton = new(keyLabel);
-                   newButton.Name = keyIndex.ToString();
-                   newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
+               Button newButton = new(keyLabel);
+               newButton.Name = keyIndex.ToString();
+               newButton.Clicked += (sender, e) => OnButtonClicked(sender, e);
 
-                   int minWidth = 350;
-                   newButton.SetSizeRequest(minWidth, -1);
+               // 325 for Space
+               int minWidth = keyLabel != "NoSymbol" ? 325 : 40;
+               newButton.SetSizeRequest(minWidth, -1);
 
-                   rowBox5.PackStart(newButton, false, false, 0);
-                   Row5.Add(newButton);
-               }
+               rowBox5.PackStart(newButton, false, false, 0);
+               Row5.Add(newButton);
            }
 
            AddInactiveButton("Alt", Row5, rowBox5);
