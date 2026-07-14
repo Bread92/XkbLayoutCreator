@@ -122,6 +122,11 @@ namespace LayoutMaker
             CreateButtonLayout();
             UpdateKeyLabels();
 
+            // Add MinWidth
+            foreach (var buttonList in buttons)
+                foreach (var b in buttonList)
+                    b.SetSizeRequest(40, -1);
+
             mainVbox.PackStart(mb, false, false, 0);
             mainVbox.PackStart(rowBox1, false, false, 0);
             mainVbox.PackStart(rowBox2, false, false, 0);
